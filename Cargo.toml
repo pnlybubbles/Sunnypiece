@@ -1,0 +1,8 @@
+[package]
+authors = ["pnlybubbles <pnlybubbles@gmail.com>"]
+name = "theory-sandbox-render"
+version = "0.1.0"
+
+[dev-dependencies]
+quickcheck = "0.6.2"
+quickcheck_macros = "0.6.1"
