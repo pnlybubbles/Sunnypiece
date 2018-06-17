@@ -1,0 +1,4 @@
+[package]
+authors = ["pnlybubbles <pnlybubbles@gmail.com>"]
+name = "theory-sandbox-render"
+version = "0.1.0"
