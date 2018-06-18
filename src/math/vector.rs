@@ -17,6 +17,10 @@ pub trait Normalize {
   fn normalize(self) -> Self;
 }
 
+pub trait Map<T> {
+  fn map(self, &Fn(T) -> T) -> Self;
+}
+
 impl<T> Norm for T
   where T: Copy + Dot
 {

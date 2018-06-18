@@ -1,6 +1,6 @@
 use std::fmt;
 use std::ops::{Neg, Add, Sub, Mul, Div};
-use super::vector::{Dot, Cross};
+use super::vector::{Dot, Cross, Map};
 use super::num::Zero;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -41,6 +41,12 @@ impl Cross for Vector3 {
       self.z * rhs.x - self.x * rhs.z,
       self.x * rhs.y - self.y * rhs.x,
     )
+  }
+}
+
+impl Map<f32> for Vector3 {
+  fn map(self, f: &Fn(f32) -> f32) -> Vector3 {
+    Vector3::new(f(self.x), f(self.y), f(self.z))
   }
 }
 
