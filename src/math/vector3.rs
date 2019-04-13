@@ -2,6 +2,7 @@ use std::fmt;
 use std::ops::{Neg, Add, Sub, Mul, Div};
 use super::vector::{Dot, Cross, Map};
 use super::num::Zero;
+use super::vector4::Vector4;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vector3 {
@@ -25,6 +26,12 @@ impl Zero for Vector3 {
 impl fmt::Display for Vector3 {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "({}, {}, {})", self.x, self.y, self.z)
+  }
+}
+
+impl From<Vector4> for Vector3 {
+  fn from(v: Vector4) -> Vector3 {
+    Vector3 { x: v.x, y: v.y, z: v.z }
   }
 }
 

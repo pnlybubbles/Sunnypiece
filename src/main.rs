@@ -4,6 +4,9 @@ mod math;
 mod film;
 mod geometry;
 mod ray;
+mod sample;
+mod camera;
+mod object;
 
 use std::path::Path;
 use math::*;
