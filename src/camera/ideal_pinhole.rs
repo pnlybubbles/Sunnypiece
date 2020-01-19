@@ -1,11 +1,12 @@
-use math::*;
 use camera::Camera;
-use sample::*;
-use ray::Ray;
+use math::*;
 use object::Transform;
+use ray::Ray;
+use sample::*;
+
+type Rad = f32;
 
 pub struct IdealPinhole {
-  xfov: f32,
   aspect: f32,
   aperture: Vector3,
   aperture_to_film_distance: f32,
@@ -13,11 +14,11 @@ pub struct IdealPinhole {
 }
 
 impl IdealPinhole {
-  fn new(
-    xfov: f32,
+  pub fn new(
+    xfov: Rad,
     // width / height
     aspect: f32,
-    matrix: Matrix4
+    matrix: Matrix4,
   ) -> IdealPinhole {
     // 開口部の位置
     let aperture = &matrix * Vector3::zero();
@@ -25,7 +26,6 @@ impl IdealPinhole {
     // 撮像素子の大きさは1x(1/aspect)
     let aperture_to_film_distance = 0.5 / (xfov / 2.0).tan();
     IdealPinhole {
-      xfov: xfov,
       aspect: aspect,
       aperture: aperture,
       aperture_to_film_distance: aperture_to_film_distance,
@@ -45,7 +45,11 @@ impl Camera for IdealPinhole {
 
   fn sample(&self, u: f32, v: f32) -> Sample<Ray, pdf::SolidAngle> {
     // サンプリング点の位置
-    let point = Vector3::new(u - 0.5, (0.5 - v) / self.aspect, -self.aperture_to_film_distance);
+    let point = Vector3::new(
+      u - 0.5,
+      (0.5 - v) / self.aspect,
+      self.aperture_to_film_distance,
+    );
     // レイの方向
     let direction = self.transform() * (-point);
     let ray = Ray {

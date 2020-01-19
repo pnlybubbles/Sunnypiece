@@ -1,50 +1,63 @@
 extern crate time;
 
-mod math;
+mod camera;
 mod film;
 mod geometry;
+mod integrator;
+mod math;
+mod object;
 mod ray;
 mod sample;
-mod camera;
-mod object;
+mod util;
 
-use std::path::Path;
+use camera::{Camera, IdealPinhole};
+use film::Format;
+use film::{Image, PPM};
+use geometry::{Geometry, Sphere};
+use integrator::{DebugIntegrator, Integrator};
 use math::*;
-use film::{PPM, Image};
-use film::Format as _Format;
-use ray::Ray;
-use geometry::{Sphere, Geometry};
+use std::path::Path;
+use util::*;
 
 const WIDTH: usize = 512;
 const HEIGHT: usize = 512;
 const SPP: usize = 1;
-type Format = PPM;
+type ImageFormat = PPM;
 
 fn main() {
-  let sphere = Sphere { position: Vector3::zero(), radius: 1.0 };
+  let sphere = Sphere {
+    position: Vector3::new(0.0, 0.0, -5.0),
+    radius: 1.0,
+  };
   let mut film = Image::new(Vector3::zero(), WIDTH, HEIGHT);
-  film.each_mut( |v, x, y| {
-    let ray = Ray {
-      origin: Vector3::new(0.0, 0.0, 5.0),
-      direction: Vector3::new(
-        x as f32 / WIDTH as f32 - 0.5,
-        y as f32 / HEIGHT as f32 - 0.5,
-        -1.0,
-      ).normalize(),
-    };
-    match sphere.intersect(&ray) {
-      Some(i) => *v = i.normal / 2.0 + Vector3::new(0.5, 0.5, 0.5),
-      None => *v = Vector3::zero(),
-    }
-  });
+  let camera = IdealPinhole::new(PI / 2.0, film.aspect(), Matrix4::unit());
+  {
+    let mut integrator = DebugIntegrator { film: &mut film };
+    integrator.each(|apply, u, v| {
+      debug_assert!(u.less_than_unit(), "0 <= u < 1.0");
+      debug_assert!(v.less_than_unit(), "0 <= v < 1.0");
+      let ray = camera.sample(u, v);
+      debug_assert!(
+        ray.value.direction.is_normalized(),
+        "ray direction should be normalized."
+      );
+      let color = match sphere.intersect(&ray.value) {
+        Some(i) => i.normal.to_color(),
+        None => Vector3::zero(),
+      };
+      apply(color)
+    });
+  }
   let file_path = &format!(
     "images/image_{}_{}.{}",
     time::now().strftime("%Y%m%d%H%M%S").unwrap(),
     SPP,
-    Format::ext(),
+    ImageFormat::ext(),
   );
-  film.save::<Format>(Path::new(&file_path), &|v| {
-    let correct = v.map( &|v| v.min(1.0).max(0.0) * 255.0 );
-    [correct.x as u8, correct.y as u8, correct.z as u8]
-  }).unwrap();
+  film
+    .save::<ImageFormat>(Path::new(&file_path), &|v| {
+      let correct = v.map(&|v| v.min(1.0).max(0.0) * 255.0);
+      [correct.x as u8, correct.y as u8, correct.z as u8]
+    })
+    .unwrap();
 }

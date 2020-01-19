@@ -1,5 +1,5 @@
-use std::path::Path;
 use std::io;
+use std::path::Path;
 
 pub struct Image<T> {
   pub data: Vec<Vec<T>>,
@@ -25,7 +25,8 @@ impl<T: Copy> Image<T> {
   }
 
   pub fn each_mut<F>(&mut self, f: F)
-    where F: Fn(&mut T, usize, usize)
+  where
+    F: Fn(&mut T, usize, usize),
   {
     for y in 0..self.height {
       for x in 0..self.width {
@@ -35,16 +36,21 @@ impl<T: Copy> Image<T> {
   }
 
   pub fn save<S>(&self, path: &Path, f: &Fn(T) -> S::Output) -> io::Result<()>
-    where S: Save<T>
+  where
+    S: Save<T>,
   {
     S::save(self, path, f)
+  }
+
+  pub fn aspect(&self) -> f32 {
+    return self.width as f32 / self.height as f32;
   }
 }
 
 pub trait Save<T>: Format {
   type Output;
 
-  fn save(&Image<T>, &Path, f: &Fn(T) -> Self::Output) -> io::Result<()>;
+  fn save(&Image<T>, &Path, &Fn(T) -> Self::Output) -> io::Result<()>;
 }
 
 pub trait Format {
