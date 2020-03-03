@@ -5,6 +5,12 @@ pub struct DebugIntegrator<'a, Pixel> {
   pub film: &'a mut Image<Pixel>,
 }
 
+impl<'a, Pixel> DebugIntegrator<'a, Pixel> {
+  fn new<'b>(film: &'b mut Image<Pixel>) -> DebugIntegrator<'b, Pixel> {
+    DebugIntegrator { film: &mut film }
+  }
+}
+
 impl<'a, Pixel> Integrator<Pixel> for DebugIntegrator<'a, Pixel> {
   fn each<F>(&mut self, f: F)
   where
