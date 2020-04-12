@@ -18,11 +18,12 @@ pub trait Normalize {
 }
 
 pub trait Map<T> {
-  fn map(self, &Fn(T) -> T) -> Self;
+  fn map<F: Fn(T) -> T>(self, F) -> Self;
 }
 
 impl<T> Norm for T
-  where T: Copy + Dot
+where
+  T: Copy + Dot,
 {
   fn norm(self) -> f32 {
     self.sqr_norm().sqrt()
@@ -34,7 +35,8 @@ impl<T> Norm for T
 }
 
 impl<T> Normalize for T
-  where T: Copy + Norm + Div<f32, Output = Self>
+where
+  T: Copy + Norm + Div<f32, Output = Self>,
 {
   fn normalize(self) -> T {
     self / self.norm()

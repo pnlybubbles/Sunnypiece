@@ -1,8 +1,8 @@
-use std::fmt;
-use std::ops::{Neg, Add, Sub, Mul, Div};
-use super::vector::{Dot, Cross, Map};
 use super::num::Zero;
+use super::vector::{Cross, Dot, Map};
 use super::vector4::Vector4;
+use std::fmt;
+use std::ops::{Add, Div, Mul, Neg, Sub};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vector3 {
@@ -31,7 +31,11 @@ impl fmt::Display for Vector3 {
 
 impl From<Vector4> for Vector3 {
   fn from(v: Vector4) -> Vector3 {
-    Vector3 { x: v.x, y: v.y, z: v.z }
+    Vector3 {
+      x: v.x,
+      y: v.y,
+      z: v.z,
+    }
   }
 }
 
@@ -52,7 +56,7 @@ impl Cross for Vector3 {
 }
 
 impl Map<f32> for Vector3 {
-  fn map(self, f: &Fn(f32) -> f32) -> Vector3 {
+  fn map<F: Fn(f32) -> f32>(self, f: F) -> Vector3 {
     Vector3::new(f(self.x), f(self.y), f(self.z))
   }
 }

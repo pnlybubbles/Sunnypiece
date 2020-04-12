@@ -1,15 +1,15 @@
 use std::io;
 use std::path::Path;
 
-pub struct Image<T> {
+pub struct Film<T> {
   pub data: Vec<Vec<T>>,
   pub width: usize,
   pub height: usize,
 }
 
-impl<T: Copy> Image<T> {
-  pub fn new(fill: T, width: usize, height: usize) -> Image<T> {
-    Image {
+impl<T: Copy> Film<T> {
+  pub fn new(fill: T, width: usize, height: usize) -> Film<T> {
+    Film {
       data: vec![vec![fill; width]; height],
       width: width,
       height: height,
@@ -35,7 +35,7 @@ impl<T: Copy> Image<T> {
     }
   }
 
-  pub fn save<S>(&self, path: &Path, f: &Fn(T) -> S::Output) -> io::Result<()>
+  pub fn save<S>(&self, path: &Path, f: impl Fn(T) -> S::Output) -> io::Result<()>
   where
     S: Save<T>,
   {
@@ -50,7 +50,7 @@ impl<T: Copy> Image<T> {
 pub trait Save<T>: Format {
   type Output;
 
-  fn save(&Image<T>, &Path, &Fn(T) -> Self::Output) -> io::Result<()>;
+  fn save(&Film<T>, &Path, impl Fn(T) -> Self::Output) -> io::Result<()>;
 }
 
 pub trait Format {

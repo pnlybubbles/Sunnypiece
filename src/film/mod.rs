@@ -1,5 +1,5 @@
-mod image;
+mod film;
 mod ppm;
 
-pub use self::image::*;
+pub use self::film::*;
 pub use self::ppm::*;

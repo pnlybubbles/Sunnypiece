@@ -1,20 +1,20 @@
 use super::integrator::Integrator;
-use film::Image;
+use film::Film;
 
 pub struct DebugIntegrator<'a, Pixel> {
-  pub film: &'a mut Image<Pixel>,
+  pub film: &'a mut Film<Pixel>,
 }
 
 impl<'a, Pixel> DebugIntegrator<'a, Pixel> {
-  fn new<'b>(film: &'b mut Image<Pixel>) -> DebugIntegrator<'b, Pixel> {
-    DebugIntegrator { film: &mut film }
+  fn new<'b>(film: &'b mut Film<Pixel>) -> DebugIntegrator<'b, Pixel> {
+    DebugIntegrator { film: film }
   }
 }
 
 impl<'a, Pixel> Integrator<Pixel> for DebugIntegrator<'a, Pixel> {
   fn each<F>(&mut self, f: F)
   where
-    F: Fn(&mut FnMut(Pixel), f32, f32),
+    F: Fn(&mut dyn FnMut(Pixel), f32, f32),
   {
     let film = &mut self.film;
     for y in 0..film.height {

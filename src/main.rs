@@ -12,7 +12,7 @@ mod util;
 
 use camera::{Camera, IdealPinhole};
 use film::Format;
-use film::{Image, PPM};
+use film::{Film, Save, PPM};
 use geometry::{Geometry, Sphere};
 use integrator::{DebugIntegrator, Integrator};
 use math::*;
@@ -22,14 +22,14 @@ use util::*;
 const WIDTH: usize = 512;
 const HEIGHT: usize = 512;
 const SPP: usize = 1;
-type ImageFormat = PPM;
+type Image = PPM;
 
 fn main() {
   let sphere = Sphere {
     position: Vector3::new(0.0, 0.0, -5.0),
     radius: 1.0,
   };
-  let mut film = Image::new(Vector3::zero(), WIDTH, HEIGHT);
+  let mut film = Film::new(Vector3::zero(), WIDTH, HEIGHT);
   let camera = IdealPinhole::new(PI / 2.0, film.aspect(), Matrix4::unit());
   {
     let mut integrator = DebugIntegrator { film: &mut film };
@@ -48,16 +48,18 @@ fn main() {
       apply(color)
     });
   }
+
+  // Path
   let file_path = &format!(
     "images/image_{}_{}.{}",
     time::now().strftime("%Y%m%d%H%M%S").unwrap(),
     SPP,
-    ImageFormat::ext(),
+    Image::ext(),
   );
-  film
-    .save::<ImageFormat>(Path::new(&file_path), &|v| {
-      let correct = v.map(&|v| v.min(1.0).max(0.0) * 255.0);
-      [correct.x as u8, correct.y as u8, correct.z as u8]
-    })
-    .unwrap();
+  // Save
+  Image::save(&film, Path::new(&file_path), |v| {
+    let correct = v.map(|v| v.min(1.0).max(0.0) * 255.0);
+    [correct.x as u8, correct.y as u8, correct.z as u8]
+  })
+  .unwrap();
 }
