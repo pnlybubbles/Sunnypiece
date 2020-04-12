@@ -25,15 +25,22 @@ const SPP: usize = 1;
 type Image = PPM;
 
 fn main() {
+  // Scene
   let sphere = Sphere {
     position: Vector3::new(0.0, 0.0, -5.0),
     radius: 1.0,
   };
+  // Film
   let mut film = Film::new(Vector3::zero(), WIDTH, HEIGHT);
+  // Camera
   let camera = IdealPinhole::new(PI / 2.0, film.aspect(), Matrix4::unit());
+
   {
-    let mut integrator = DebugIntegrator { film: &mut film };
+    // Integrator
+    let mut integrator = DebugIntegrator::new(&mut film);
+
     integrator.each(|apply, u, v| {
+      // Light transport
       debug_assert!(u.less_than_unit(), "0 <= u < 1.0");
       debug_assert!(v.less_than_unit(), "0 <= v < 1.0");
       let ray = camera.sample(u, v);

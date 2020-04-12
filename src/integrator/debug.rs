@@ -6,7 +6,7 @@ pub struct DebugIntegrator<'a, Pixel> {
 }
 
 impl<'a, Pixel> DebugIntegrator<'a, Pixel> {
-  fn new<'b>(film: &'b mut Film<Pixel>) -> DebugIntegrator<'b, Pixel> {
+  pub fn new<'b>(film: &'b mut Film<Pixel>) -> DebugIntegrator<'b, Pixel> {
     DebugIntegrator { film: film }
   }
 }
