@@ -21,7 +21,8 @@ impl<T: Copy> Film<T> {
   }
 
   pub fn get(&self, x: usize, y: usize) -> T {
-    self.data[y][x]
+    // flipping
+    self.data[self.height - y - 1][self.width - x - 1]
   }
 
   pub fn each_mut<F>(&mut self, f: F)
