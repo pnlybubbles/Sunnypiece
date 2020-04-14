@@ -1,5 +1,8 @@
+#![feature(box_syntax)]
+
 extern crate time;
 
+mod acceleration;
 mod camera;
 mod film;
 mod geometry;
@@ -16,6 +19,7 @@ use film::{Film, Save, PPM};
 use geometry::{Geometry, Sphere};
 use integrator::{DebugIntegrator, Integrator};
 use math::*;
+use object::{Object, Scene};
 use std::path::Path;
 use util::*;
 
@@ -25,15 +29,24 @@ const SPP: usize = 1;
 type Image = PPM;
 
 fn main() {
-  // Scene
-  let sphere = Sphere {
-    position: Vector3::new(0.0, 0.0, -5.0),
-    radius: 1.0,
-  };
   // Film
   let mut film = Film::new(Vector3::zero(), WIDTH, HEIGHT);
   // Camera
   let camera = IdealPinhole::new(PI / 2.0, film.aspect(), Matrix4::unit());
+  // Scene
+  let sphere = Object::new(
+    box Sphere {
+      position: Vector3::new(0.0, 0.0, -5.0),
+      radius: 1.0,
+    },
+    Matrix4::unit(),
+  );
+  let objects = vec![sphere];
+  let structure = acceleration::Linear::new(objects);
+  let scene = Scene {
+    camera: camera,
+    structure: structure,
+  };
 
   {
     // Integrator
@@ -43,12 +56,12 @@ fn main() {
       // Light transport
       debug_assert!(u.less_than_unit(), "0 <= u < 1.0");
       debug_assert!(v.less_than_unit(), "0 <= v < 1.0");
-      let ray = camera.sample(u, v);
+      let ray = scene.camera.sample(u, v);
       debug_assert!(
         ray.value.direction.is_normalized(),
         "ray direction should be normalized."
       );
-      let color = match sphere.intersect(&ray.value) {
+      let color = match scene.structure.intersect(&ray.value) {
         Some(i) => i.normal.to_color(),
         None => Vector3::zero(),
       };

@@ -43,7 +43,7 @@ impl Transform for IdealPinhole {
 impl Camera for IdealPinhole {
   type PDF = pdf::SolidAngle;
 
-  fn sample(&self, u: f32, v: f32) -> Sample<Ray, pdf::SolidAngle> {
+  fn sample(&self, u: f32, v: f32) -> Sample<Ray, Self::PDF> {
     // サンプリング点の位置
     let point = Vector3::new(
       u - 0.5,
