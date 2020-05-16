@@ -10,6 +10,7 @@ mod math;
 mod object;
 mod ray;
 mod sample;
+mod sampler;
 mod util;
 
 use camera::{Camera, IdealPinhole};
