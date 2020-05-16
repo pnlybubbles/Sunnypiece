@@ -51,6 +51,10 @@ impl<'a> Interaction<'a> {
     self.intersection.normal
   }
 
+  pub fn is_backface(&self) -> bool {
+    self.intersection.normal.dot(-self.ray.direction) < 0.0
+  }
+
   pub fn emittance(&self) -> Vector3 {
     self.material.emittance()
   }

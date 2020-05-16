@@ -20,6 +20,9 @@ where
     match maybe_interaction {
       None => Vector3::zero(),
       Some(interaction) => {
+        if interaction.is_backface() {
+          return Vector3::zero();
+        }
         let l_e = interaction.emittance();
         if depth > 5 {
           return l_e;
