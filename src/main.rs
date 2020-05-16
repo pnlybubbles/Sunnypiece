@@ -17,13 +17,12 @@ mod util;
 use camera::{Camera, IdealPinhole};
 use film::Format;
 use film::{Film, Save, PPM};
-use geometry::{Geometry, Sphere};
+use geometry::Sphere;
 use integrator::{DebugIntegrator, Integrator};
 use light_transport::Radiance;
 use math::*;
 use object::Object;
 use std::path::Path;
-use util::*;
 
 const WIDTH: usize = 512;
 const HEIGHT: usize = 512;
@@ -38,14 +37,31 @@ fn main() {
   let camera = IdealPinhole::new(PI / 2.0, film.aspect(), Matrix4::unit());
 
   // シーン
-  let sphere = Object::new(
+  let light_material = material::Lambertian {
+    emittance: Vector3::new(1.0, 1.0, 1.0),
+    albedo: Vector3::zero(),
+  };
+  let white_material = material::Lambertian {
+    emittance: Vector3::zero(),
+    albedo: Vector3::new(1.0, 1.0, 1.0),
+  };
+  let light = Object::new(
     Box::new(Sphere {
       position: Vector3::new(0.0, 0.0, -5.0),
       radius: 1.0,
     }),
     Matrix4::unit(),
+    Box::new(light_material),
   );
-  let objects = vec![sphere];
+  let sphere = Object::new(
+    Box::new(Sphere {
+      position: Vector3::new(0.0, -1001.0, -5.0),
+      radius: 1000.0,
+    }),
+    Matrix4::unit(),
+    Box::new(white_material),
+  );
+  let objects = vec![light, sphere];
 
   // 空間構造
   let structure = acceleration::Linear::new(objects);
@@ -54,7 +70,7 @@ fn main() {
     // 積分器
     let mut integrator = DebugIntegrator::new(&mut film);
     // 光輸送
-    let light_transporter = light_transport::Normal {
+    let light_transporter = light_transport::Naive {
       structure: structure,
     };
 

@@ -21,11 +21,11 @@ where
       "ray direction should be normalized."
     );
 
-    let maybe_intersection = self.structure.intersect(ray);
+    let maybe_interaction = self.structure.interact(ray);
 
-    match maybe_intersection {
+    match maybe_interaction {
       None => Vector3::zero(),
-      Some(intersection) => intersection.normal.to_color(),
+      Some(interaction) => interaction.normal().to_color(),
     }
   }
 }

@@ -1,6 +1,6 @@
 mod linear;
 
 pub use self::linear::*;
-use geometry::Geometry;
+use object::Interact;
 
-pub trait Acceleration: Geometry {}
+pub trait Acceleration: Interact {}

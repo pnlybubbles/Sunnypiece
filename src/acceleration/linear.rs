@@ -1,19 +1,14 @@
 use super::Acceleration;
-use geometry::{Geometry, Intersection};
-use object::Object;
+use object::{Interact, Interaction, Object};
 use ray::Ray;
 
 pub struct Linear {
   list: Vec<Object>,
 }
 
-impl Geometry for Linear {
-  fn intersect(&self, ray: &Ray) -> Option<Intersection> {
-    self
-      .list
-      .iter()
-      .flat_map(|v| v.geometry.intersect(&ray))
-      .min_by(|a, b| a.distance.partial_cmp(&b.distance).unwrap())
+impl Interact for Linear {
+  fn interact<'a>(&'a self, ray: &'a Ray) -> Option<Interaction> {
+    self.list.iter().flat_map(|v| v.interact(&ray)).min()
   }
 }
 

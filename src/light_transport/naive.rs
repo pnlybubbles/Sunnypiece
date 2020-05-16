@@ -1,29 +1,42 @@
 use super::radiance::Radiance;
 use acceleration::Acceleration;
-use camera::Camera;
 use math::*;
 use ray::Ray;
 
-pub struct Naive<T, S>
+pub struct Naive<S>
 where
-  T: Camera,
   S: Acceleration,
 {
-  pub camera: T,
   pub structure: S,
 }
 
-impl<T, S> Radiance for Naive<T, S>
+impl<S> Naive<S>
 where
-  T: Camera,
+  S: Acceleration,
+{
+  fn radiance_recursive(&self, ray: &Ray, depth: usize) -> Vector3 {
+    let maybe_interaction = self.structure.interact(ray);
+
+    match maybe_interaction {
+      None => Vector3::zero(),
+      Some(interaction) => {
+        let l_e = interaction.emittance();
+        if depth > 5 {
+          return l_e;
+        }
+        let (new_ray, throughput) = interaction.material_throughput();
+        let l_i = self.radiance_recursive(&new_ray, depth + 1);
+        l_e + l_i * throughput
+      }
+    }
+  }
+}
+
+impl<S> Radiance for Naive<S>
+where
   S: Acceleration,
 {
   fn radiance(&self, ray: &Ray) -> Vector3 {
-    let maybe_intersection = self.structure.intersect(ray);
-
-    match maybe_intersection {
-      None => Vector3::zero(),
-      Some(intersection) => Vector3::new(1.0, 1.0, 1.0),
-    }
+    self.radiance_recursive(ray, 0)
   }
 }

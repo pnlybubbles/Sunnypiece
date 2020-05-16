@@ -4,13 +4,13 @@ use sample::*;
 use sampler::Sampler;
 
 pub struct Lambertian {
-  pub emission: Vector3,
+  pub emittance: Vector3,
   pub albedo: Vector3,
 }
 
 impl Material for Lambertian {
-  fn emission(&self) -> Vector3 {
-    self.emission
+  fn emittance(&self) -> Vector3 {
+    self.emittance
   }
 
   fn brdf(&self, _out_: Vector3, _in_: Vector3, _n_: Vector3, _pos: Vector3) -> Vector3 {
