@@ -10,7 +10,7 @@ pub trait Interact {
 }
 
 pub struct Interaction<'a> {
-  material: &'a Box<dyn Material>,
+  material: &'a Box<dyn Material + Send + Sync>,
   intersection: Intersection,
   ray: &'a Ray,
 }
@@ -39,7 +39,11 @@ impl<'a> Ord for Interaction<'a> {
 }
 
 impl<'a> Interaction<'a> {
-  pub fn new(intersection: Intersection, material: &'a Box<dyn Material>, ray: &'a Ray) -> Self {
+  pub fn new(
+    intersection: Intersection,
+    material: &'a Box<dyn Material + Send + Sync>,
+    ray: &'a Ray,
+  ) -> Self {
     Interaction {
       intersection: intersection,
       material: material,

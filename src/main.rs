@@ -1,3 +1,4 @@
+extern crate rayon;
 extern crate time;
 
 mod acceleration;
@@ -18,7 +19,7 @@ use camera::{Camera, IdealPinhole};
 use film::Format;
 use film::{Film, Save, PPM};
 use geometry::Sphere;
-use integrator::{DebugIntegrator, Integrator};
+use integrator::Integrator;
 use light_transport::Radiance;
 use math::*;
 use object::Object;
@@ -68,7 +69,7 @@ fn main() {
 
   {
     // 積分器
-    let mut integrator = DebugIntegrator::new(&mut film, 10);
+    let mut integrator = integrator::ParPixel::new(&mut film, 10000);
     // 光輸送
     let light_transporter = light_transport::Naive {
       structure: structure,

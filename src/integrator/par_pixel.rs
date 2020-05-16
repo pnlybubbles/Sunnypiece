@@ -1,33 +1,34 @@
 use super::integrator::Integrator;
 use film::Film;
+use rayon::prelude::*;
 use std::ops::{Add, Div};
 
-pub struct Debug<'a, Pixel> {
+pub struct ParPixel<'a, Pixel> {
   pub film: &'a mut Film<Pixel>,
   pub spp: usize,
 }
 
-impl<'a, Pixel> Debug<'a, Pixel> {
-  pub fn new<'b>(film: &'b mut Film<Pixel>, spp: usize) -> Debug<'b, Pixel> {
-    Debug {
+impl<'a, Pixel> ParPixel<'a, Pixel> {
+  pub fn new<'b>(film: &'b mut Film<Pixel>, spp: usize) -> ParPixel<'b, Pixel> {
+    ParPixel {
       film: film,
       spp: spp,
     }
   }
 }
 
-impl<'a, Pixel> Integrator<Pixel> for Debug<'a, Pixel> {
+impl<'a, Pixel> Integrator<Pixel> for ParPixel<'a, Pixel> {
   fn each<F>(&mut self, f: F)
   where
     Pixel: Clone + Send + Sync + Add<Pixel, Output = Pixel> + Div<f32, Output = Pixel>,
-    F: Fn(f32, f32) -> Pixel,
+    F: Send + Sync + Fn(f32, f32) -> Pixel,
   {
     let spp = self.spp;
     let uv = self.film.uv();
     self
       .film
       .data
-      .iter_mut()
+      .par_iter_mut()
       .enumerate()
       .for_each(|(index, pixel)| {
         *pixel = (0..spp).fold(pixel.clone(), |sum, _| {

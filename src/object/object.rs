@@ -7,13 +7,17 @@ use math::*;
 use ray::Ray;
 
 pub struct Object {
-  pub geometry: Box<dyn Geometry>,
+  pub geometry: Box<dyn Geometry + Send + Sync>,
   matrix: Matrix4,
-  material: Box<dyn Material>,
+  material: Box<dyn Material + Send + Sync>,
 }
 
 impl Object {
-  pub fn new(geometry: Box<dyn Geometry>, matrix: Matrix4, material: Box<dyn Material>) -> Self {
+  pub fn new(
+    geometry: Box<dyn Geometry + Send + Sync>,
+    matrix: Matrix4,
+    material: Box<dyn Material + Send + Sync>,
+  ) -> Self {
     Object {
       geometry: geometry,
       matrix: matrix,
