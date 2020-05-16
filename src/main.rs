@@ -1,5 +1,3 @@
-#![feature(box_syntax)]
-
 extern crate time;
 
 mod acceleration;
@@ -35,10 +33,10 @@ fn main() {
   let camera = IdealPinhole::new(PI / 2.0, film.aspect(), Matrix4::unit());
   // Scene
   let sphere = Object::new(
-    box Sphere {
+    Box::new(Sphere {
       position: Vector3::new(0.0, 0.0, -5.0),
       radius: 1.0,
-    },
+    }),
     Matrix4::unit(),
   );
   let objects = vec![sphere];
