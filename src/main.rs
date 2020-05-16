@@ -6,6 +6,7 @@ mod film;
 mod geometry;
 mod integrator;
 mod light_transport;
+mod material;
 mod math;
 mod object;
 mod ray;
