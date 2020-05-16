@@ -5,6 +5,7 @@ mod camera;
 mod film;
 mod geometry;
 mod integrator;
+mod light_transport;
 mod math;
 mod object;
 mod ray;
@@ -16,8 +17,9 @@ use film::Format;
 use film::{Film, Save, PPM};
 use geometry::{Geometry, Sphere};
 use integrator::{DebugIntegrator, Integrator};
+use light_transport::Radiance;
 use math::*;
-use object::{Object, Scene};
+use object::Object;
 use std::path::Path;
 use util::*;
 
@@ -46,28 +48,17 @@ fn main() {
   // 空間構造
   let structure = acceleration::Linear::new(objects);
 
-  let scene = Scene {
-    camera: camera,
-    structure: structure,
-  };
-
   {
     // 積分器
     let mut integrator = DebugIntegrator::new(&mut film);
+    // 光輸送
+    let light_transporter = light_transport::Normal {
+      structure: structure,
+    };
 
     integrator.each(|apply, u, v| {
-      // 光輸送
-      debug_assert!(u.less_than_unit(), "0 <= u < 1.0");
-      debug_assert!(v.less_than_unit(), "0 <= v < 1.0");
-      let ray = scene.camera.sample(u, v);
-      debug_assert!(
-        ray.value.direction.is_normalized(),
-        "ray direction should be normalized."
-      );
-      let color = match scene.structure.intersect(&ray.value) {
-        Some(i) => i.normal.to_color(),
-        None => Vector3::zero(),
-      };
+      let ray = camera.sample(u, v);
+      let color = light_transporter.radiance(&ray.value);
       apply(color)
     });
   }

@@ -28,11 +28,10 @@ impl Transform for Object {
   }
 }
 
-pub struct Scene<T, S>
-where
-  T: Camera,
-  S: Acceleration,
-{
-  pub camera: T,
-  pub structure: S,
+trait Scene {
+  type Camera: Camera;
+  type Structure: Acceleration;
+
+  fn camera() -> Self::Camera;
+  fn structure() -> Self::Structure;
 }
