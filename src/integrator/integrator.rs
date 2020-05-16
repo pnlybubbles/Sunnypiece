@@ -1,9 +1,10 @@
-use std::ops::{AddAssign, DivAssign};
+use std::ops::{Add, Div};
 
 pub trait Integrator<Pixel> {
   fn each<F>(&mut self, f: F)
   where
-    Pixel: AddAssign<Pixel>,
-    Pixel: DivAssign<f32>,
-    F: Fn(&mut dyn FnMut(Pixel), f32, f32);
+    Pixel: Clone,
+    Pixel: Add<Pixel, Output = Pixel>,
+    Pixel: Div<f32, Output = Pixel>,
+    F: Fn(f32, f32) -> Pixel;
 }

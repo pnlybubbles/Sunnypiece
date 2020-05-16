@@ -74,10 +74,9 @@ fn main() {
       structure: structure,
     };
 
-    integrator.each(|apply, u, v| {
+    integrator.each(|u, v| {
       let ray = camera.sample(u, v);
-      let color = light_transporter.radiance(&ray.value);
-      apply(color)
+      light_transporter.radiance(&ray.value)
     });
   }
 

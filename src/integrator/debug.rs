@@ -1,6 +1,6 @@
 use super::integrator::Integrator;
 use film::Film;
-use std::ops::{AddAssign, DivAssign};
+use std::ops::{Add, Div};
 
 pub struct DebugIntegrator<'a, Pixel> {
   pub film: &'a mut Film<Pixel>,
@@ -19,20 +19,23 @@ impl<'a, Pixel> DebugIntegrator<'a, Pixel> {
 impl<'a, Pixel> Integrator<Pixel> for DebugIntegrator<'a, Pixel> {
   fn each<F>(&mut self, f: F)
   where
-    Pixel: AddAssign<Pixel>,
-    Pixel: DivAssign<f32>,
-    F: Fn(&mut dyn FnMut(Pixel), f32, f32),
+    Pixel: Clone,
+    Pixel: Add<Pixel, Output = Pixel>,
+    Pixel: Div<f32, Output = Pixel>,
+    F: Fn(f32, f32) -> Pixel,
   {
-    let film = &mut self.film;
-    for y in 0..film.height {
-      for x in 0..film.width {
-        let u = x as f32 / film.width as f32;
-        let v = y as f32 / film.height as f32;
-        for _ in 0..self.spp {
-          f(&mut |value| film.data[y][x] += value, u, v)
-        }
-        film.data[y][x] /= self.spp as f32;
-      }
-    }
+    let spp = self.spp;
+    let uv = self.film.uv();
+    self
+      .film
+      .data
+      .iter_mut()
+      .enumerate()
+      .for_each(|(index, pixel)| {
+        *pixel = (0..spp).fold(pixel.clone(), |sum, _| {
+          let (u, v) = uv(index);
+          sum + f(u, v)
+        }) / spp as f32
+      })
   }
 }

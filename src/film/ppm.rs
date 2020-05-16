@@ -13,7 +13,7 @@ where
 {
   type Output = [u8; 3];
 
-  fn save(image: &Film<T>, path: &Path, f: impl Fn(T) -> Self::Output) -> io::Result<()> {
+  fn save(image: &Film<T>, path: &Path, f: impl Fn(&T) -> Self::Output) -> io::Result<()> {
     let mut file = File::create(&path)?;
     file.write_all(format!("P3\n{} {}\n{}\n", image.width, image.height, 255).as_bytes())?;
     for y in 0..image.height {
