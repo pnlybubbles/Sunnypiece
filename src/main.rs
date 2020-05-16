@@ -68,7 +68,7 @@ fn main() {
 
   {
     // 積分器
-    let mut integrator = DebugIntegrator::new(&mut film);
+    let mut integrator = DebugIntegrator::new(&mut film, 10);
     // 光輸送
     let light_transporter = light_transport::Naive {
       structure: structure,
