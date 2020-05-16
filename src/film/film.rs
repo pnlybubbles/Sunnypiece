@@ -36,13 +36,6 @@ impl<T: Copy> Film<T> {
     }
   }
 
-  pub fn save<S>(&self, path: &Path, f: impl Fn(T) -> S::Output) -> io::Result<()>
-  where
-    S: Save<T>,
-  {
-    S::save(self, path, f)
-  }
-
   pub fn aspect(&self) -> f32 {
     return self.width as f32 / self.height as f32;
   }
