@@ -24,21 +24,24 @@ impl<T: Clone> Film<T> {
     }
   }
 
+  /**
+   * (0,1) ... (1,1)
+   * ...         ...
+   * (0,0) ... (1,0)
+   */
   pub fn uv(&self) -> impl Fn(usize) -> (f32, f32) {
     let w = self.width;
     let h = self.height;
     move |index| {
       let x = index % w;
-      let y = index / w;
+      // flip y
+      let y = h - index / w - 1;
       (x as f32 / w as f32, y as f32 / h as f32)
     }
   }
 
   pub fn get(&self, x: usize, y: usize) -> &T {
-    // flipping
-    let row = self.height - y - 1;
-    let col = self.width - x - 1;
-    &self.data[row * self.width + col]
+    &self.data[y * self.width + x]
   }
 
   pub fn aspect(&self) -> f32 {

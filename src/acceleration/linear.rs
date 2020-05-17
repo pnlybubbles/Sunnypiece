@@ -2,20 +2,20 @@ use super::Acceleration;
 use object::{Interact, Interaction, Object};
 use ray::Ray;
 
-pub struct Linear {
-  list: Vec<Object>,
+pub struct Linear<'a> {
+  list: Vec<Object<'a>>,
 }
 
-impl Interact for Linear {
-  fn interact<'a>(&'a self, ray: &'a Ray) -> Option<Interaction> {
+impl<'a> Interact for Linear<'a> {
+  fn interact<'b>(&'b self, ray: &'b Ray) -> Option<Interaction> {
     self.list.iter().flat_map(|v| v.interact(&ray)).min()
   }
 }
 
-impl Acceleration for Linear {}
+impl<'a> Acceleration for Linear<'a> {}
 
-impl Linear {
-  pub fn new(objects: Vec<Object>) -> Self {
+impl<'a> Linear<'a> {
+  pub fn new(objects: Vec<Object<'a>>) -> Self {
     Linear { list: objects }
   }
 }

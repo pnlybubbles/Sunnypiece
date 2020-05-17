@@ -1,46 +1,35 @@
-use std::ops::{Neg, Add, Sub, Mul};
 use super::num::Zero;
+use super::vector::*;
 use super::vector3::Vector3;
 use super::vector4::Vector4;
-use super::vector::*;
+use std::ops::{Add, Mul, Neg, Sub};
 
 #[derive(Debug, Clone)]
 pub struct Matrix4 {
-  v: [f32; 4 * 4]
+  v: [f32; 4 * 4],
 }
 
 impl Matrix4 {
   pub fn new(array: [f32; 4 * 4]) -> Matrix4 {
     // row-major
-    Matrix4 {
-      v: array
-    }
+    Matrix4 { v: array }
   }
 
   pub fn unit() -> Matrix4 {
     Matrix4::new([
-      1.0, 0.0, 0.0, 0.0,
-      0.0, 1.0, 0.0, 0.0,
-      0.0, 0.0, 1.0, 0.0,
-      0.0, 0.0, 0.0, 1.0
+      1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0,
     ])
   }
 
   pub fn translate(v: Vector3) -> Matrix4 {
     Matrix4::new([
-      1.0, 0.0, 0.0, v.x,
-      0.0, 1.0, 0.0, v.y,
-      0.0, 0.0, 1.0, v.z,
-      0.0, 0.0, 0.0, 1.0,
+      1.0, 0.0, 0.0, v.x, 0.0, 1.0, 0.0, v.y, 0.0, 0.0, 1.0, v.z, 0.0, 0.0, 0.0, 1.0,
     ])
   }
 
   pub fn scale(v: Vector3) -> Matrix4 {
     Matrix4::new([
-      v.x, 0.0, 0.0, 0.0,
-      0.0, v.y, 0.0, 0.0,
-      0.0, 0.0, v.z, 0.0,
-      0.0, 0.0, 0.0, 1.0,
+      v.x, 0.0, 0.0, 0.0, 0.0, v.y, 0.0, 0.0, 0.0, 0.0, v.z, 0.0, 0.0, 0.0, 0.0, 1.0,
     ])
   }
 
@@ -49,10 +38,22 @@ impl Matrix4 {
     let c = t.cos();
     let s = t.sin();
     Matrix4::new([
-      c + a.x * a.x * (1.0 - c), a.x * a.y * (1.0 - c) - a.z * s, a.x * a.z * (1.0 - c) + a.y * s, 0.0,
-      a.y * a.x * (1.0 - c) + a.z * s, c + a.y * a.y * (1.0 - c), a.y * a.z * (1.0 - c) - a.x * s, 0.0,
-      a.z * a.x * (1.0 - c) - a.y * s, a.z * a.y * (1.0 - c) + a.x * s, c + a.z * a.z * (1.0 - c), 0.0,
-      0.0, 0.0, 0.0, 1.0,
+      c + a.x * a.x * (1.0 - c),
+      a.x * a.y * (1.0 - c) - a.z * s,
+      a.x * a.z * (1.0 - c) + a.y * s,
+      0.0,
+      a.y * a.x * (1.0 - c) + a.z * s,
+      c + a.y * a.y * (1.0 - c),
+      a.y * a.z * (1.0 - c) - a.x * s,
+      0.0,
+      a.z * a.x * (1.0 - c) - a.y * s,
+      a.z * a.y * (1.0 - c) + a.x * s,
+      c + a.z * a.z * (1.0 - c),
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
     ])
   }
 
@@ -61,15 +62,14 @@ impl Matrix4 {
     let xa = up.cross(za).normalize();
     let ya = za.cross(xa);
     Matrix4::new([
-      xa.x, xa.y, xa.z, 0.0,
-      ya.x, ya.y, ya.z, 0.0,
-      za.x, za.y, za.z, 0.0,
-      origin.x, origin.y, origin.z, 1.0,
+      xa.x, xa.y, xa.z, origin.x, ya.x, ya.y, ya.z, origin.y, za.x, za.y, za.z, origin.z, 0.0, 0.0,
+      0.0, 1.0,
     ])
   }
 
   pub fn map_col<F>(&self, f: F) -> Vector4
-    where F: Fn(Vector4) -> f32
+  where
+    F: Fn(Vector4) -> f32,
   {
     let mut out = [0f32; 4];
     for (i, o) in out.iter_mut().enumerate() {
@@ -135,7 +135,7 @@ impl<'a> Mul for &'a Matrix4 {
     for (i, o) in out.v.iter_mut().enumerate() {
       let x = i % 4;
       let y = i / 4;
-      *o = (0..4).map( |j| self.v[y * 4 + j] * rhs.v[i * 4 + x] ).sum()
+      *o = (0..4).map(|j| self.v[y * 4 + j] * rhs.v[i * 4 + x]).sum()
     }
     out
   }
@@ -146,9 +146,7 @@ impl<'a> Mul<Vector3> for &'a Matrix4 {
 
   fn mul(self, rhs: Vector3) -> Vector3 {
     let rhs_homo: Vector4 = rhs.into();
-    let out = self.map_col( |row| {
-      row.dot(rhs_homo)
-    });
+    let out = self.map_col(|row| row.dot(rhs_homo));
     out.into()
   }
 }

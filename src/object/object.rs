@@ -6,17 +6,17 @@ use material::Material;
 use math::*;
 use ray::Ray;
 
-pub struct Object {
+pub struct Object<'a> {
   pub geometry: Box<dyn Geometry + Send + Sync>,
   matrix: Matrix4,
-  material: Box<dyn Material + Send + Sync>,
+  material: &'a Box<dyn Material + Send + Sync>,
 }
 
-impl Object {
+impl<'a> Object<'a> {
   pub fn new(
     geometry: Box<dyn Geometry + Send + Sync>,
     matrix: Matrix4,
-    material: Box<dyn Material + Send + Sync>,
+    material: &'a Box<dyn Material + Send + Sync>,
   ) -> Self {
     Object {
       geometry: geometry,
@@ -26,14 +26,14 @@ impl Object {
   }
 }
 
-impl Transform for Object {
+impl<'a> Transform for Object<'a> {
   fn transform(&self) -> &Matrix4 {
     &self.matrix
   }
 }
 
-impl Interact for Object {
-  fn interact<'a>(&'a self, ray: &'a Ray) -> Option<Interaction> {
+impl<'a> Interact for Object<'a> {
+  fn interact<'b>(&'b self, ray: &'b Ray) -> Option<Interaction> {
     self
       .geometry
       .intersect(ray)

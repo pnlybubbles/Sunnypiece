@@ -46,12 +46,18 @@ impl Camera for IdealPinhole {
   fn sample(&self, u: f32, v: f32) -> Sample<Ray, Self::PDF> {
     // サンプリング点の位置
     let point = Vector3::new(
-      u - 0.5,
+      // センサー面はz正にあり、開口部は原点にある
+      // uv座標系は像を正立させたときの左下を基準に定義される
+      // センサーをウラ面から開口部方向(z負方向)に見たときに、右がx正、上がy正になる
+      // 像は上下左右反転するので、正立像の左側がx正、下側がy正になる
+      // uが0のとき、xが0.5
+      0.5 - u,
+      // vが0のとき、yが0.5
       (0.5 - v) / self.aspect,
       self.aperture_to_film_distance,
     );
     // レイの方向
-    let direction = self.transform() * (-point);
+    let direction = self.aperture - self.transform() * point;
     let ray = Ray {
       origin: self.aperture,
       direction: direction.normalize(),
