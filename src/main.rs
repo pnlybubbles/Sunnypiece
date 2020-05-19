@@ -28,8 +28,8 @@ use math::*;
 use object::Object;
 use std::path::Path;
 
-const WIDTH: usize = 512;
-const HEIGHT: usize = 512;
+const WIDTH: usize = 720 * 4 / 3;
+const HEIGHT: usize = 720;
 const SPP: usize = 1000;
 type Image = PPM;
 
