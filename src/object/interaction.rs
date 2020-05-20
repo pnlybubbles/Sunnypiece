@@ -80,7 +80,7 @@ impl<'a> Interaction<'a> {
     // 新しいレイ
     let ray = Ray {
       direction: in_vec,
-      origin: position,
+      origin: position + normal_vec * EPS,
     };
     (ray, throughput)
   }
