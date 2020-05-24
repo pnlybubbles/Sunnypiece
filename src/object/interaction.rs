@@ -1,3 +1,4 @@
+use super::LightSampler;
 use acceleration::Acceleration;
 use geometry::Geometry;
 use geometry::Intersection;
@@ -120,6 +121,7 @@ impl<'a> Interaction<'a> {
 
 pub struct Geom<'a> {
   x: Vector3,
+  x_: Vector3,
   x1: Vector3,
   x2: Vector3,
   n: Vector3,
@@ -135,6 +137,7 @@ impl<'a> Geom<'a> {
     debug_assert!(current.intersection.position.approx_eq(next.ray.origin));
     Geom {
       x: current.intersection.position,
+      x_: next.ray.origin,
       x1: current.ray.origin,
       x2: next.intersection.position,
       n: current.intersection.normal,
@@ -148,6 +151,26 @@ impl<'a> Geom<'a> {
 
   pub fn bsdf(&self) -> Vector3 {
     self.current.material.brdf(self.wo, self.wi, self.n, self.x)
+  }
+
+  pub fn bsdf_pdf(&self) -> pdf::Area {
+    self
+      .current
+      .material
+      .pdf(self.wi, self.n)
+      .area_measure(self.x_, self.x2, self.n2)
+  }
+
+  pub fn g(&self) -> f32 {
+    self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_).sqr_norm()
+  }
+
+  pub fn light_pdf(&self, light_sampler: &LightSampler) -> Option<pdf::Area> {
+    if self.next.material.emittance().norm() > 0.0 {
+      Some(light_sampler.pdf(self.next.geometry))
+    } else {
+      None
+    }
   }
 }
 
@@ -168,6 +191,6 @@ impl<'a> GeomWeight<pdf::SolidAngle> for Geom<'a> {
 impl<'a> GeomWeight<pdf::Area> for Geom<'a> {
   fn weight(&self, pdf: pdf::Area) -> f32 {
     let pdf::Area(p) = pdf;
-    self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x).sqr_norm() / p
+    self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_).sqr_norm() / p
   }
 }

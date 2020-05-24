@@ -3,6 +3,7 @@ use acceleration::{Acceleration, AccelerationUtility};
 use math::*;
 use object::{GeomWeight, Interaction, LightSampler};
 use ray::Ray;
+use sample::mis::MIS;
 
 pub struct ExplicitLight<'a, S>
 where
@@ -25,7 +26,7 @@ where
 
   fn radiance_recursive(&self, point: &Interaction, depth: usize) -> Vector3 {
     // 視線サブパスが直接光源に接続された場合のみ寄与を取る
-    // 光源からの寄与は光源サンプリングで取っているので寄与に含めない
+    // 光源からの寄与は前のパスで取っているので含めない
     let le = if depth == 0 {
       point.emittance()
     } else {
@@ -43,21 +44,35 @@ where
     let material_throughput = match point.connect_direction(self.structure, material_sample.value) {
       None => Vector3::zero(),
       Some(geom) => {
-        // 接続先から再帰的にパスを生成する
-        let li = self.radiance_recursive(&geom.next, depth + 1);
-        li * geom.bsdf() * geom.weight(material_sample.pdf)
+        // マテリアルに比例した光源サブパスの重点的サンプリング
+        let li = geom.next.emittance();
+        let light_pdf = geom.light_pdf(&self.light_sampler);
+        let bsdf_pdf = geom.bsdf_pdf();
+        let light_contrib = light_pdf
+          .map(|pdf| {
+            let mis_weight = bsdf_pdf.power_hulistic(pdf, 2);
+            li * geom.bsdf() * geom.weight(bsdf_pdf) * mis_weight
+          })
+          .unwrap_or(Vector3::zero());
+        // 接続先から再帰的にパスを生成して散乱成分の寄与を蓄積する
+        let li_scatter = self.radiance_recursive(&geom.next, depth + 1);
+        let scatter_contrib = li_scatter * geom.bsdf() * geom.weight(bsdf_pdf);
+        light_contrib + scatter_contrib
       }
     };
 
-    // 明示的に光源をサンプリング
+    // 明示的に光源の座標をサンプリング
     let light_sample = self.light_sampler.sample();
     // 衝突点と光源を接続して光源サブパスを生成
     let light_throughput = match point.connect_point(self.structure, light_sample.value) {
       None => Vector3::zero(),
       Some(geom) => {
-        // 光源に接続したら寄与を取って終端
+        // 明示的な光源サブパスの重点的サンプリング
         let li = geom.next.emittance();
-        li * geom.bsdf() * geom.weight(light_sample.pdf)
+        let light_pdf = light_sample.pdf;
+        let bsdf_pdf = geom.bsdf_pdf();
+        let mis_weight = light_pdf.power_hulistic(bsdf_pdf, 2);
+        li * geom.bsdf() * geom.weight(light_pdf) * mis_weight
       }
     };
 
