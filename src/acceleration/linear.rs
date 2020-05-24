@@ -7,12 +7,16 @@ pub struct Linear<'a> {
 }
 
 impl<'a> Interact for Linear<'a> {
-  fn interact<'b>(&'b self, ray: &'b Ray) -> Option<Interaction> {
-    self.list.iter().flat_map(|v| v.interact(&ray)).min()
+  fn interact<'b>(&'b self, ray: Ray) -> Option<Interaction> {
+    self.list.iter().flat_map(|v| v.interact(ray.clone())).min()
   }
 }
 
-impl<'a> Acceleration for Linear<'a> {}
+impl<'a> Acceleration for Linear<'a> {
+  fn objects(&self) -> &Vec<Object> {
+    &self.list
+  }
+}
 
 impl<'a> Linear<'a> {
   pub fn new(objects: Vec<Object<'a>>) -> Self {

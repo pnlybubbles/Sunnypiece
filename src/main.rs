@@ -28,9 +28,9 @@ use math::*;
 use object::Object;
 use std::path::Path;
 
-const WIDTH: usize = 720 * 4 / 3;
-const HEIGHT: usize = 720;
-const SPP: usize = 1000;
+const WIDTH: usize = 512;
+const HEIGHT: usize = 512;
+const SPP: usize = 100;
 type Image = PPM;
 
 fn main() {
@@ -64,58 +64,45 @@ fn main() {
   });
   let room_size = 10.0;
   let left = Object::new(
-    Box::new(Sphere {
-      position: Vector3::new(-1e4 - room_size, 0.0, 0.0),
-      radius: 1e4,
-    }),
+    Box::new(Sphere::new(Vector3::new(-1e4 - room_size, 0.0, 0.0), 1e4)),
     Matrix4::unit(),
     &red_diffuse,
   );
   let right = Object::new(
-    Box::new(Sphere {
-      position: Vector3::new(1e4 + room_size, 0.0, 0.0),
-      radius: 1e4,
-    }),
+    Box::new(Sphere::new(Vector3::new(1e4 + room_size, 0.0, 0.0), 1e4)),
     Matrix4::unit(),
     &blue_diffuse,
   );
   let back = Object::new(
-    Box::new(Sphere {
-      position: Vector3::new(0.0, 0.0, -1e4 - room_size),
-      radius: 1e4,
-    }),
+    Box::new(Sphere::new(Vector3::new(0.0, 0.0, -1e4 - room_size), 1e4)),
     Matrix4::unit(),
     &white_diffuse,
   );
   let bottom = Object::new(
-    Box::new(Sphere {
-      position: Vector3::new(0.0, -1e4 - room_size, 0.0),
-      radius: 1e4,
-    }),
+    Box::new(Sphere::new(Vector3::new(0.0, -1e4 - room_size, 0.0), 1e4)),
     Matrix4::unit(),
     &white_diffuse,
   );
   let top = Object::new(
-    Box::new(Sphere {
-      position: Vector3::new(0.0, 1e4 + room_size, 0.0),
-      radius: 1e4,
-    }),
+    Box::new(Sphere::new(Vector3::new(0.0, 1e4 + room_size, 0.0), 1e4)),
     Matrix4::unit(),
     &white_diffuse,
   );
   let sphere1 = Object::new(
-    Box::new(Sphere {
-      position: Vector3::new(0.0, -room_size + 3.0, 0.0),
-      radius: 3.0,
-    }),
+    Box::new(Sphere::new(Vector3::new(0.0, -room_size + 3.0, 0.0), 3.0)),
     Matrix4::unit(),
     &white_diffuse,
   );
+  // let light = Object::new(
+  //   Box::new(Sphere::new(
+  //     Vector3::new(0.0, room_size + 200.0 - 0.1, 0.0),
+  //     200.0,
+  //   )),
+  //   Matrix4::unit(),
+  //   &light_diffuse,
+  // );
   let light = Object::new(
-    Box::new(Sphere {
-      position: Vector3::new(0.0, room_size + 200.0 - 0.1, 0.0),
-      radius: 200.0,
-    }),
+    Box::new(Sphere::new(Vector3::new(0.0, room_size - 2.5, 0.0), 2.0)),
     Matrix4::unit(),
     &light_diffuse,
   );
@@ -127,13 +114,11 @@ fn main() {
   // 積分器
   let mut integrator = integrator::ParPixel::new(&mut film, SPP);
   // 光輸送
-  let light_transporter = light_transport::Naive {
-    structure: structure,
-  };
+  let light_transporter = light_transport::Naive::new(&structure);
 
   integrator.each(|u, v| {
     let ray = camera.sample(u, v);
-    light_transporter.radiance(&ray.value)
+    light_transporter.radiance(ray.value)
   });
 
   // 保存

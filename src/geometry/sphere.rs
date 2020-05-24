@@ -1,11 +1,24 @@
-use math::*;
-use ray::Ray;
 use super::geometry::Geometry;
 use super::intersection::Intersection;
+use math::*;
+use ray::Ray;
+use sample::{pdf, Sample};
+use sampler::Sampler;
 
 pub struct Sphere {
-  pub position: Vector3,
-  pub radius: f32,
+  position: Vector3,
+  radius: f32,
+  area: f32,
+}
+
+impl Sphere {
+  pub fn new(position: Vector3, radius: f32) -> Self {
+    Sphere {
+      position: position,
+      radius: radius,
+      area: 4.0 * PI * radius.powi(2),
+    }
+  }
 }
 
 impl Geometry for Sphere {
@@ -37,5 +50,16 @@ impl Geometry for Sphere {
       normal: normal,
       distance: distance,
     })
+  }
+
+  fn area(&self) -> f32 {
+    self.area
+  }
+
+  fn sample(&self) -> Sample<Vector3, pdf::Area> {
+    Sample {
+      value: self.position + self.radius * Sampler::sphere_uniform(),
+      pdf: pdf::Area(1.0 / self.area),
+    }
   }
 }

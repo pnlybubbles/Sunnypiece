@@ -9,7 +9,7 @@ use ray::Ray;
 pub struct Object<'a> {
   pub geometry: Box<dyn Geometry + Send + Sync>,
   matrix: Matrix4,
-  material: &'a Box<dyn Material + Send + Sync>,
+  pub material: &'a Box<dyn Material + Send + Sync>,
 }
 
 impl<'a> Object<'a> {
@@ -33,10 +33,10 @@ impl<'a> Transform for Object<'a> {
 }
 
 impl<'a> Interact for Object<'a> {
-  fn interact<'b>(&'b self, ray: &'b Ray) -> Option<Interaction> {
+  fn interact<'b>(&'b self, ray: Ray) -> Option<Interaction> {
     self
       .geometry
-      .intersect(ray)
-      .map(|intersection| Interaction::new(intersection, &self.material, &ray))
+      .intersect(&ray)
+      .map(|intersection| Interaction::new(intersection, &self.material, ray))
   }
 }

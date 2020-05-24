@@ -15,7 +15,7 @@ impl<S> Radiance for Normal<S>
 where
   S: Acceleration,
 {
-  fn radiance(&self, ray: &Ray) -> Vector3 {
+  fn radiance(&self, ray: Ray) -> Vector3 {
     debug_assert!(
       ray.direction.is_normalized(),
       "ray direction should be normalized."
@@ -25,7 +25,7 @@ where
 
     match maybe_interaction {
       None => Vector3::zero(),
-      Some(interaction) => interaction.normal().to_color(),
+      Some(interaction) => interaction.factor().normal.to_color(),
     }
   }
 }
