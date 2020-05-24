@@ -71,7 +71,7 @@ impl<'a> Interaction<'a> {
     self.material.sample(wo, n)
   }
 
-  pub fn connect_direction<S>(&self, structure: &'a S, wi: Vector3) -> Option<Relation>
+  pub fn connect_direction<S>(&self, structure: &'a S, wi: Vector3) -> Option<Geom>
   where
     S: Acceleration,
   {
@@ -84,10 +84,10 @@ impl<'a> Interaction<'a> {
     };
     structure
       .interact(ray)
-      .map(|interaction| Relation::new(self, interaction))
+      .map(|interaction| Geom::new(self, interaction))
   }
 
-  pub fn connect_point<S>(&self, structure: &'a S, x2: Vector3) -> Option<Relation>
+  pub fn connect_point<S>(&self, structure: &'a S, x2: Vector3) -> Option<Geom>
   where
     S: Acceleration,
   {
@@ -105,7 +105,7 @@ impl<'a> Interaction<'a> {
     structure.interact(ray).and_then(|interaction| {
       // 可視チェック(2)
       if interaction.intersection.distance.approx_eq(path.norm()) {
-        Some(Relation::new(self, interaction))
+        Some(Geom::new(self, interaction))
       } else {
         None
       }
@@ -113,7 +113,7 @@ impl<'a> Interaction<'a> {
   }
 }
 
-pub struct Relation<'a> {
+pub struct Geom<'a> {
   x: Vector3,
   x1: Vector3,
   x2: Vector3,
@@ -125,10 +125,10 @@ pub struct Relation<'a> {
   pub next: Interaction<'a>,
 }
 
-impl<'a> Relation<'a> {
+impl<'a> Geom<'a> {
   fn new(current: &'a Interaction, next: Interaction<'a>) -> Self {
     debug_assert!(current.intersection.position.approx_eq(next.ray.origin));
-    Relation {
+    Geom {
       x: current.intersection.position,
       x1: current.ray.origin,
       x2: next.intersection.position,
@@ -146,21 +146,21 @@ impl<'a> Relation<'a> {
   }
 }
 
-pub trait RelationWeight<PDF>
+pub trait GeomWeight<PDF>
 where
   PDF: pdf::Measure,
 {
   fn weight(&self, pdf: PDF) -> f32;
 }
 
-impl<'a> RelationWeight<pdf::SolidAngle> for Relation<'a> {
+impl<'a> GeomWeight<pdf::SolidAngle> for Geom<'a> {
   fn weight(&self, pdf: pdf::SolidAngle) -> f32 {
     let pdf::SolidAngle(p) = pdf;
     self.wi.dot(self.n) / p
   }
 }
 
-impl<'a> RelationWeight<pdf::Area> for Relation<'a> {
+impl<'a> GeomWeight<pdf::Area> for Geom<'a> {
   fn weight(&self, pdf: pdf::Area) -> f32 {
     let pdf::Area(p) = pdf;
     self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x).sqr_norm() / p

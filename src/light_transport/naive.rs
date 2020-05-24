@@ -1,7 +1,7 @@
 use super::radiance::Radiance;
 use acceleration::Acceleration;
 use math::*;
-use object::{Interaction, RelationWeight};
+use object::{GeomWeight, Interaction};
 use ray::Ray;
 
 pub struct Naive<'a, S>
@@ -33,9 +33,9 @@ where
     let material_sample = point.sample_material();
     let material_throughput = match point.connect_direction(self.structure, material_sample.value) {
       None => Vector3::zero(),
-      Some(relation) => {
-        let li = self.radiance_recursive(&relation.next, depth + 1);
-        li * relation.bsdf() * relation.weight(material_sample.pdf)
+      Some(geom) => {
+        let li = self.radiance_recursive(&geom.next, depth + 1);
+        li * geom.bsdf() * geom.weight(material_sample.pdf)
       }
     };
 

@@ -1,7 +1,7 @@
 use super::radiance::Radiance;
 use acceleration::{Acceleration, AccelerationUtility};
 use math::*;
-use object::{Interaction, LightSampler, RelationWeight};
+use object::{GeomWeight, Interaction, LightSampler};
 use ray::Ray;
 
 pub struct ExplicitLight<'a, S>
@@ -35,9 +35,9 @@ where
     let material_sample = point.sample_material();
     let material_throughput = match point.connect_direction(self.structure, material_sample.value) {
       None => Vector3::zero(),
-      Some(relation) => {
-        let li = self.radiance_recursive(&relation.next, depth + 1);
-        li * relation.bsdf() * relation.weight(material_sample.pdf)
+      Some(geom) => {
+        let li = self.radiance_recursive(&geom.next, depth + 1);
+        li * geom.bsdf() * geom.weight(material_sample.pdf)
       }
     };
 
@@ -45,9 +45,9 @@ where
     let light_sample = self.light_sampler.sample();
     let light_throughput = match point.connect_point(self.structure, light_sample.value) {
       None => Vector3::zero(),
-      Some(relation) => {
-        let li = relation.next.emittance();
-        li * relation.bsdf() * relation.weight(light_sample.pdf)
+      Some(geom) => {
+        let li = geom.next.emittance();
+        li * geom.bsdf() * geom.weight(light_sample.pdf)
       }
     };
 
