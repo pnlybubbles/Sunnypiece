@@ -7,4 +7,5 @@ pub trait Geometry {
   fn intersect(&self, &Ray) -> Option<Intersection>;
   fn area(&self) -> f32;
   fn sample(&self) -> Sample<Vector3, pdf::Area>;
+  fn pdf(&self) -> pdf::Area;
 }

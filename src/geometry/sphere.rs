@@ -62,4 +62,8 @@ impl Geometry for Sphere {
       pdf: pdf::Area(1.0 / self.area),
     }
   }
+
+  fn pdf(&self) -> pdf::Area {
+    pdf::Area(1.0 / self.area)
+  }
 }
