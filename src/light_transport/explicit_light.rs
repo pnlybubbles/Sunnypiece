@@ -1,23 +1,25 @@
 use super::radiance::Radiance;
-use acceleration::Acceleration;
+use acceleration::{Acceleration, AccelerationUtility};
 use math::*;
-use object::{Interaction, RelationWeight};
+use object::{Interaction, LightSampler, RelationWeight};
 use ray::Ray;
 
-pub struct Naive<'a, S>
+pub struct ExplicitLight<'a, S>
 where
   S: Acceleration,
 {
   structure: &'a S,
+  light_sampler: LightSampler<'a>,
 }
 
-impl<'a, S> Naive<'a, S>
+impl<'a, S> ExplicitLight<'a, S>
 where
   S: Acceleration + 'a,
 {
   pub fn new(structure: &'a S) -> Self {
-    Naive {
+    ExplicitLight {
       structure: structure,
+      light_sampler: structure.light_sampler(),
     }
   }
 
@@ -39,11 +41,21 @@ where
       }
     };
 
-    le + material_throughput
+    // 明示的な光源のサンプリング
+    let light_sample = self.light_sampler.sample();
+    let light_throughput = match point.connect_point(self.structure, light_sample.value) {
+      None => Vector3::zero(),
+      Some(relation) => {
+        let li = relation.next.emittance();
+        li * relation.bsdf() * relation.weight(light_sample.pdf)
+      }
+    };
+
+    le + material_throughput + light_throughput
   }
 }
 
-impl<'a, S> Radiance for Naive<'a, S>
+impl<'a, S> Radiance for ExplicitLight<'a, S>
 where
   S: Acceleration,
 {
