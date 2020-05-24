@@ -56,7 +56,7 @@ where
           .unwrap_or(Vector3::zero());
         // 接続先から再帰的にパスを生成して散乱成分の寄与を蓄積する
         let li_scatter = self.radiance_recursive(&geom.next, depth + 1);
-        let scatter_contrib = li_scatter * geom.bsdf() * geom.weight(bsdf_pdf);
+        let scatter_contrib = li_scatter * geom.bsdf() * geom.weight(material_sample.pdf);
         light_contrib + scatter_contrib
       }
     };
