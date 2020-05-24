@@ -8,7 +8,7 @@ pub struct Linear<'a> {
 
 impl<'a> Interact for Linear<'a> {
   fn interact<'b>(&'b self, ray: Ray) -> Option<Interaction> {
-    self.list.iter().flat_map(|v| v.interact(ray.clone())).min()
+    self.list.iter().flat_map(|v| v.interact(ray)).min()
   }
 }
 
