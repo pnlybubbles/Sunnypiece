@@ -36,4 +36,13 @@ impl Material for Lambertian {
       pdf: pdf::SolidAngle(pdf),
     }
   }
+
+  fn pdf(&self, wi: Vector3, n: Vector3) -> pdf::SolidAngle {
+    // cos項
+    let cos_term = wi.dot(n);
+    // 確率密度関数
+    // (cosにしたがって重点的にサンプル) cosθ / π
+    let pdf = cos_term / PI;
+    pdf::SolidAngle(pdf)
+  }
 }
