@@ -31,21 +31,25 @@ where
       return le;
     }
 
-    // マテリアルに基づいたサンプリング
+    // マテリアルに基づいて方向ベクトルをサンプリング
     let material_sample = point.sample_material();
+    // 衝突点から方向ベクトルを使ってパスを接続
     let material_throughput = match point.connect_direction(self.structure, material_sample.value) {
       None => Vector3::zero(),
       Some(geom) => {
+        // 接続先から再帰的にパスを生成する
         let li = self.radiance_recursive(&geom.next, depth + 1);
         li * geom.bsdf() * geom.weight(material_sample.pdf)
       }
     };
 
-    // 明示的な光源のサンプリング
+    // 明示的に光源をサンプリング
     let light_sample = self.light_sampler.sample();
+    // 衝突点と光源を接続して光源サブパスを生成
     let light_throughput = match point.connect_point(self.structure, light_sample.value) {
       None => Vector3::zero(),
       Some(geom) => {
+        // 光源に接続したら寄与を取って終端
         let li = geom.next.emittance();
         li * geom.bsdf() * geom.weight(light_sample.pdf)
       }

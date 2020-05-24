@@ -29,11 +29,13 @@ where
       return le;
     }
 
-    // マテリアルに基づいたサンプリング
+    // マテリアルに基づいて方向ベクトルをサンプリング
     let material_sample = point.sample_material();
+    // 衝突点から方向ベクトルを使ってパスを接続
     let material_throughput = match point.connect_direction(self.structure, material_sample.value) {
       None => Vector3::zero(),
       Some(geom) => {
+        // 接続先から再帰的にパスを生成する
         let li = self.radiance_recursive(&geom.next, depth + 1);
         li * geom.bsdf() * geom.weight(material_sample.pdf)
       }

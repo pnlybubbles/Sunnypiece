@@ -24,6 +24,7 @@ impl<'a> LightSampler<'a> {
 
   pub fn sample(&self) -> Sample<Vector3, pdf::Area> {
     // 面積のみを考慮した光源の重点的サンプリング
+    // NOTE: 位置ベクトルがサンプリングされる
     let roulette = self.light_area * rand::random::<f32>();
     let mut area = 0.0;
     for obj in &self.light {

@@ -68,6 +68,7 @@ impl<'a> Interaction<'a> {
     let n = self.intersection.normal;
     let wo = -self.ray.direction;
     // BRDFに応じたサンプリング
+    // NOTE: 方向ベクトルがサンプリングされる
     self.material.sample(wo, n)
   }
 
