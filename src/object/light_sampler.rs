@@ -1,3 +1,4 @@
+use geometry::Geometry;
 use math::*;
 use object::Object;
 use sample::{pdf, Sample};
@@ -38,5 +39,9 @@ impl<'a> LightSampler<'a> {
       }
     }
     unreachable!();
+  }
+
+  pub fn pdf(&self, geometry: &Box<dyn Geometry + Send + Sync>) -> pdf::Area {
+    geometry.pdf() * (geometry.area() / self.light_area)
   }
 }
