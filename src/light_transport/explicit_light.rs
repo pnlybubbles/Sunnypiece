@@ -24,7 +24,13 @@ where
   }
 
   fn radiance_recursive(&self, point: &Interaction, depth: usize) -> Vector3 {
-    let le = point.emittance();
+    // 視線サブパスが直接光源に接続された場合のみ寄与を取る
+    // 光源からの寄与は光源サンプリングで取っているので寄与に含めない
+    let le = if depth == 0 {
+      point.emittance()
+    } else {
+      Vector3::zero()
+    };
     // スタックオーバーフロー防止
     // TODO: ロシアンルーレット
     if depth > 5 {

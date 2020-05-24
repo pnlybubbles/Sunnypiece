@@ -52,8 +52,8 @@ impl<'a> Interaction<'a> {
     }
   }
 
-  pub fn factor(&self) -> &Intersection {
-    &self.intersection
+  pub fn normal(&self) -> Vector3 {
+    self.intersection.normal
   }
 
   pub fn is_backface(&self) -> bool {

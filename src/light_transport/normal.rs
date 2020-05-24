@@ -25,7 +25,7 @@ where
 
     match maybe_interaction {
       None => Vector3::zero(),
-      Some(interaction) => interaction.factor().normal.to_color(),
+      Some(interaction) => interaction.normal().to_color(),
     }
   }
 }
