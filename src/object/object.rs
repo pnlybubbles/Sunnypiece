@@ -37,6 +37,6 @@ impl<'a> Interact for Object<'a> {
     self
       .geometry
       .intersect(&ray)
-      .map(|intersection| Interaction::new(intersection, &self.material, ray))
+      .map(|intersection| Interaction::new(intersection, &self.material, &self.geometry, ray))
   }
 }

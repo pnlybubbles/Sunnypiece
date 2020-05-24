@@ -1,4 +1,5 @@
 use acceleration::Acceleration;
+use geometry::Geometry;
 use geometry::Intersection;
 use material::Material;
 use math::*;
@@ -12,6 +13,7 @@ pub trait Interact {
 
 pub struct Interaction<'a> {
   material: &'a Box<dyn Material + Send + Sync>,
+  geometry: &'a Box<dyn Geometry + Send + Sync>,
   intersection: Intersection,
   ray: Ray,
 }
@@ -43,11 +45,13 @@ impl<'a> Interaction<'a> {
   pub fn new(
     intersection: Intersection,
     material: &'a Box<dyn Material + Send + Sync>,
+    geometry: &'a Box<dyn Geometry + Send + Sync>,
     ray: Ray,
   ) -> Self {
     Interaction {
       intersection: intersection,
       material: material,
+      geometry: geometry,
       ray: ray,
     }
   }
