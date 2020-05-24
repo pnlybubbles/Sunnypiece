@@ -3,7 +3,9 @@ use std::ops::Mul;
 
 pub trait Measure {}
 
+#[derive(Copy, Clone)]
 pub struct SolidAngle(pub f32);
+#[derive(Copy, Clone)]
 pub struct Area(pub f32);
 
 impl Measure for SolidAngle {}
@@ -28,9 +30,10 @@ impl Mul<f32> for Area {
 }
 
 impl SolidAngle {
-  pub fn into_area(self, x: Vector3, x2: Vector3, n2: Vector3) -> Area {
+  pub fn area_measure(self, x: Vector3, x2: Vector3, n2: Vector3) -> Area {
+    let SolidAngle(pdf) = self;
     let path = x2 - x;
     let wi = path.normalize();
-    Area((-wi).dot(n2) / path.sqr_norm())
+    Area(pdf * (-wi).dot(n2) / path.sqr_norm())
   }
 }
