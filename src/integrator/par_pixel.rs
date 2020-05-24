@@ -1,7 +1,9 @@
 use super::integrator::Integrator;
+use super::util;
 use film::Film;
 use rayon::prelude::*;
 use std::ops::{Add, Div};
+use std::sync::Mutex;
 
 pub struct ParPixel<'a, Pixel> {
   pub film: &'a mut Film<Pixel>,
@@ -25,16 +27,25 @@ impl<'a, Pixel> Integrator<Pixel> for ParPixel<'a, Pixel> {
   {
     let spp = self.spp;
     let uv = self.film.uv();
+    let total = self.film.height * self.film.width;
+    let progress = Mutex::new(0);
     self
       .film
       .data
       .par_iter_mut()
       .enumerate()
       .for_each(|(index, pixel)| {
+        {
+          let mut p = progress.lock().unwrap();
+          *p += 1;
+          util::progress_indicator(*p, total);
+        }
+        // heavy task
         *pixel = (0..spp).fold(pixel.clone(), |sum, _| {
           let (u, v) = uv(index);
           sum + f(u, v)
         }) / spp as f32
-      })
+      });
+    println!("");
   }
 }
