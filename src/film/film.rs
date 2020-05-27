@@ -1,3 +1,4 @@
+use math::Vector3;
 use std::io;
 use std::path::Path;
 
@@ -46,6 +47,31 @@ impl<T: Clone> Film<T> {
 
   pub fn aspect(&self) -> f32 {
     return self.width as f32 / self.height as f32;
+  }
+}
+
+pub trait Validate {
+  fn validate(&self);
+}
+
+impl Validate for Film<Vector3> {
+  fn validate(&self) {
+    debug_assert!(
+      self
+        .data
+        .iter()
+        .find(|v| v.x.is_nan() || v.y.is_nan() || v.z.is_nan())
+        == None,
+      "nan"
+    );
+    debug_assert!(
+      self
+        .data
+        .iter()
+        .find(|v| v.x.is_infinite() || v.y.is_infinite() || v.z.is_infinite())
+        == None,
+      "infinite"
+    );
   }
 }
 
