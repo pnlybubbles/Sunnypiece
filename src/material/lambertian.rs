@@ -43,6 +43,7 @@ impl Material for Lambertian {
     // 確率密度関数
     // (cosにしたがって重点的にサンプル) cosθ / π
     let pdf = cos_term / PI;
+    debug_assert!(pdf.is_finite(), "{}", pdf);
     pdf::SolidAngle(pdf)
   }
 }

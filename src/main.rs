@@ -1,5 +1,9 @@
 #![allow(dead_code)]
 
+extern crate fasthash;
+extern crate rand;
+extern crate rand_core;
+extern crate rand_mt;
 extern crate rayon;
 extern crate time;
 
@@ -18,20 +22,28 @@ mod sampler;
 mod util;
 
 use camera::{Camera, IdealPinhole};
+use fasthash::murmur3;
 use film::Format;
-use film::{Film, Save, PPM};
+use film::{Film, Save, Validate, PPM};
 use geometry::Sphere;
 use integrator::Integrator;
 use light_transport::Radiance;
 use material::Material;
 use math::*;
 use object::Object;
+use rand::SeedableRng;
+use std::cell::RefCell;
 use std::path::Path;
 
 const WIDTH: usize = 512;
 const HEIGHT: usize = 512;
 const SPP: usize = 100;
 type Image = PPM;
+type RNG = rand_mt::Mt;
+
+thread_local! {
+  pub static RNG: RefCell<RNG> = RefCell::new(SeedableRng::seed_from_u64(0));
+}
 
 fn main() {
   // フィルム
@@ -116,10 +128,50 @@ fn main() {
   // 光輸送
   let light_transporter = light_transport::ExplicitLight::new(&structure);
 
-  integrator.each(|u, v| {
+  // シードの読み込み
+  let args: Vec<String> = std::env::args().collect();
+
+  let seed: u32 = if args.len() >= 2 {
+    args[1].parse().unwrap()
+  } else {
+    rand::random()
+  };
+
+  println!("Using seed: {}", seed);
+
+  let size = integrator.film.data.len();
+  let thread_seed = (0..size)
+    .map(|i| unsafe {
+      std::mem::transmute(murmur3::hash32_with_seed(
+        std::mem::transmute::<usize, [u8; 8]>(i),
+        seed,
+      ))
+    })
+    .collect::<Vec<_>>();
+
+  integrator.each(|u, v, i| {
+    RNG.with(|rng| *rng.borrow_mut() = RNG::from_seed(thread_seed[i]));
     let ray = camera.sample(u, v);
     light_transporter.radiance(ray.value)
   });
+
+  // NAN, INFINITY チェック
+  film.validate();
+
+  let max = film
+    .data
+    .iter()
+    .max_by(|a, b| a.x.partial_cmp(&b.x).unwrap_or(std::cmp::Ordering::Equal));
+
+  let min = film
+    .data
+    .iter()
+    .min_by(|a, b| a.x.partial_cmp(&b.x).unwrap_or(std::cmp::Ordering::Equal));
+
+  println!("{:?}", max);
+  println!("{:?}", min);
+
+  println!("{:?}", film.data[0]);
 
   // 保存
   let file_path = &format!(

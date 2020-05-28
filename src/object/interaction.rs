@@ -184,6 +184,11 @@ where
 impl<'a> GeomWeight<pdf::SolidAngle> for Geom<'a> {
   fn weight(&self, pdf: pdf::SolidAngle) -> f32 {
     let pdf::SolidAngle(p) = pdf;
+    debug_assert!(
+      (self.wi.dot(self.n) / p).is_finite(),
+      "{}",
+      self.wi.dot(self.n) / p
+    );
     self.wi.dot(self.n) / p
   }
 }

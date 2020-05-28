@@ -1,7 +1,9 @@
 use geometry::Geometry;
 use math::*;
 use object::Object;
+use rand::Rng;
 use sample::{pdf, Sample};
+use RNG;
 
 pub struct LightSampler<'a> {
   light: Vec<&'a Object<'a>>,
@@ -26,19 +28,22 @@ impl<'a> LightSampler<'a> {
   pub fn sample(&self) -> Sample<Vector3, pdf::Area> {
     // 面積のみを考慮した光源の重点的サンプリング
     // NOTE: 位置ベクトルがサンプリングされる
-    let roulette = self.light_area * rand::random::<f32>();
-    let mut area = 0.0;
-    for obj in &self.light {
-      area += obj.geometry.area();
-      if roulette <= area {
-        let sample = obj.geometry.sample();
-        return Sample {
-          value: sample.value,
-          pdf: sample.pdf * (obj.geometry.area() / self.light_area),
-        };
+    RNG.with(|rng| {
+      let r = rng.borrow_mut().gen::<f32>();
+      let roulette = self.light_area * r;
+      let mut area = 0.0;
+      for obj in &self.light {
+        area += obj.geometry.area();
+        if roulette <= area {
+          let sample = obj.geometry.sample();
+          return Sample {
+            value: sample.value,
+            pdf: sample.pdf * (obj.geometry.area() / self.light_area),
+          };
+        }
       }
-    }
-    unreachable!();
+      unreachable!();
+    })
   }
 
   pub fn pdf(&self, geometry: &Box<dyn Geometry + Send + Sync>) -> pdf::Area {

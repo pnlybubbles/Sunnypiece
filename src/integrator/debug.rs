@@ -1,4 +1,5 @@
 use super::integrator::Integrator;
+use super::util;
 use film::Film;
 use std::ops::{Add, Div};
 
@@ -20,19 +21,21 @@ impl<'a, Pixel> Integrator<Pixel> for Debug<'a, Pixel> {
   fn each<F>(&mut self, f: F)
   where
     Pixel: Clone + Send + Sync + Add<Pixel, Output = Pixel> + Div<f32, Output = Pixel>,
-    F: Fn(f32, f32) -> Pixel,
+    F: Fn(f32, f32, usize) -> Pixel,
   {
     let spp = self.spp;
     let uv = self.film.uv();
+    let total = self.film.height * self.film.width;
     self
       .film
       .data
       .iter_mut()
       .enumerate()
       .for_each(|(index, pixel)| {
+        util::progress_indicator(index, total);
         *pixel = (0..spp).fold(pixel.clone(), |sum, _| {
           let (u, v) = uv(index);
-          sum + f(u, v)
+          sum + f(u, v, index)
         }) / spp as f32
       })
   }

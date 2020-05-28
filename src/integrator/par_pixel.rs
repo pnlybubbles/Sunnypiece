@@ -23,7 +23,7 @@ impl<'a, Pixel> Integrator<Pixel> for ParPixel<'a, Pixel> {
   fn each<F>(&mut self, f: F)
   where
     Pixel: Clone + Send + Sync + Add<Pixel, Output = Pixel> + Div<f32, Output = Pixel>,
-    F: Send + Sync + Fn(f32, f32) -> Pixel,
+    F: Send + Sync + Fn(f32, f32, usize) -> Pixel,
   {
     let spp = self.spp;
     let uv = self.film.uv();
@@ -43,7 +43,7 @@ impl<'a, Pixel> Integrator<Pixel> for ParPixel<'a, Pixel> {
         // heavy task
         *pixel = (0..spp).fold(pixel.clone(), |sum, _| {
           let (u, v) = uv(index);
-          sum + f(u, v)
+          sum + f(u, v, index)
         }) / spp as f32
       });
     println!("");
