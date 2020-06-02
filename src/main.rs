@@ -35,9 +35,9 @@ use std::path::Path;
 
 const WIDTH: usize = 512;
 const HEIGHT: usize = 512;
-const SPP: usize = 100;
+const SPP: usize = 1000;
 type Image = PPM;
-type RNG = rand_mt::Mt;
+type RNG = rand::rngs::StdRng;
 
 thread_local! {
   pub static RNG: RefCell<RNG> = RefCell::new(SeedableRng::from_entropy());
@@ -124,14 +124,14 @@ fn main() {
   // シードの読み込み
   let args: Vec<String> = std::env::args().collect();
 
-  let seed = if args.len() >= 2 {
+  let seed: u64 = if args.len() >= 2 {
     args[1].parse().unwrap()
   } else {
     rand::random()
   };
 
   // 積分器
-  let mut integrator = integrator::Debug::new(&mut film, SPP, seed);
+  let mut integrator = integrator::ParPixel::new(&mut film, SPP);
   // 光輸送
   let light_transporter = light_transport::Naive::new(&structure);
 
