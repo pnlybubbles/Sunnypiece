@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 
-extern crate fasthash;
-extern crate num_cpus;
 extern crate rand;
 extern crate rand_core;
 extern crate rand_mt;
@@ -126,14 +124,14 @@ fn main() {
   // シードの読み込み
   let args: Vec<String> = std::env::args().collect();
 
-  let seed: u32 = if args.len() >= 2 {
+  let seed = if args.len() >= 2 {
     args[1].parse().unwrap()
   } else {
     rand::random()
   };
 
   // 積分器
-  let mut integrator = integrator::ParRow::new(&mut film, SPP, seed);
+  let mut integrator = integrator::Debug::new(&mut film, SPP, seed);
   // 光輸送
   let light_transporter = light_transport::Naive::new(&structure);
 

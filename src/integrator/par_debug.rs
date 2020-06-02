@@ -1,22 +1,21 @@
 use super::integrator::Integrator;
 use super::util;
-use fasthash::murmur3;
 use film::Film;
-use rand::SeedableRng;
+use rand::{Rng, SeedableRng};
 use rayon::prelude::*;
 use std::ops::{Add, Div};
 use std::sync::Mutex;
 use RNG;
 
-pub struct ParRow<'a, Pixel> {
+pub struct ParDebug<'a, Pixel> {
   pub film: &'a mut Film<Pixel>,
   pub spp: usize,
-  seed: u32,
+  seed: u64,
 }
 
-impl<'a, Pixel> ParRow<'a, Pixel> {
-  pub fn new<'b>(film: &'b mut Film<Pixel>, spp: usize, seed: u32) -> ParRow<'b, Pixel> {
-    ParRow {
+impl<'a, Pixel> ParDebug<'a, Pixel> {
+  pub fn new<'b>(film: &'b mut Film<Pixel>, spp: usize, seed: u64) -> ParDebug<'b, Pixel> {
+    ParDebug {
       film: film,
       spp: spp,
       seed: seed,
@@ -24,7 +23,7 @@ impl<'a, Pixel> ParRow<'a, Pixel> {
   }
 }
 
-impl<'a, Pixel> Integrator<Pixel> for ParRow<'a, Pixel> {
+impl<'a, Pixel> Integrator<Pixel> for ParDebug<'a, Pixel> {
   fn each<F>(&mut self, f: F)
   where
     Pixel: Clone + Send + Sync + Add<Pixel, Output = Pixel> + Div<f32, Output = Pixel>,
@@ -38,14 +37,9 @@ impl<'a, Pixel> Integrator<Pixel> for ParRow<'a, Pixel> {
 
     println!("Using seed: {}", self.seed);
 
-    let size = self.film.data.len();
-    let thread_seed = (0..size)
-      .map(|i| unsafe {
-        std::mem::transmute::<u32, [u8; 4]>(murmur3::hash32_with_seed(
-          std::mem::transmute::<usize, [u8; 8]>(i),
-          self.seed,
-        ))
-      })
+    let mut local_rng = RNG::seed_from_u64(self.seed);
+    let thread_seed = (0..total)
+      .map(|_| local_rng.gen::<u64>())
       .collect::<Vec<_>>();
 
     self
@@ -61,7 +55,7 @@ impl<'a, Pixel> Integrator<Pixel> for ParRow<'a, Pixel> {
         }
 
         // initialize thread local rng
-        RNG.with(|rng| *rng.borrow_mut() = RNG::from_seed(thread_seed[index]));
+        RNG.with(|rng| *rng.borrow_mut() = RNG::seed_from_u64(thread_seed[index]));
 
         // heavy task
         slice.iter_mut().enumerate().for_each(|(i, pixel)| {
