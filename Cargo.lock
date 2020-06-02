@@ -297,6 +297,7 @@ version = "0.1.0"
 dependencies = [
  "fasthash 0.4.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "mt19937 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "num_cpus 1.13.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.7.3 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand_core 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand_mt 3.0.0 (registry+https://github.com/rust-lang/crates.io-index)",

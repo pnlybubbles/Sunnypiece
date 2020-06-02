@@ -13,6 +13,7 @@ rand_xoshiro = "0.4.0"
 rand_mt = "3.0.0"
 rand_core = "0.5.1"
 fasthash = "0.4.0"
+num_cpus = "1.13.0"
 
 [profile.dev]
 opt-level = 3

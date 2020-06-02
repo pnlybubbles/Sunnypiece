@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 extern crate fasthash;
+extern crate num_cpus;
 extern crate rand;
 extern crate rand_core;
 extern crate rand_mt;
@@ -22,7 +23,6 @@ mod sampler;
 mod util;
 
 use camera::{Camera, IdealPinhole};
-use fasthash::murmur3;
 use film::Format;
 use film::{Film, Save, Validate, PPM};
 use geometry::Sphere;
@@ -42,7 +42,7 @@ type Image = PPM;
 type RNG = rand_mt::Mt;
 
 thread_local! {
-  pub static RNG: RefCell<RNG> = RefCell::new(SeedableRng::seed_from_u64(0));
+  pub static RNG: RefCell<RNG> = RefCell::new(SeedableRng::from_entropy());
 }
 
 fn main() {
@@ -123,11 +123,6 @@ fn main() {
   // 空間構造
   let structure = acceleration::Linear::new(objects);
 
-  // 積分器
-  let mut integrator = integrator::ParPixel::new(&mut film, SPP);
-  // 光輸送
-  let light_transporter = light_transport::ExplicitLight::new(&structure);
-
   // シードの読み込み
   let args: Vec<String> = std::env::args().collect();
 
@@ -137,20 +132,12 @@ fn main() {
     rand::random()
   };
 
-  println!("Using seed: {}", seed);
+  // 積分器
+  let mut integrator = integrator::ParRow::new(&mut film, SPP, seed);
+  // 光輸送
+  let light_transporter = light_transport::Naive::new(&structure);
 
-  let size = integrator.film.data.len();
-  let thread_seed = (0..size)
-    .map(|i| unsafe {
-      std::mem::transmute(murmur3::hash32_with_seed(
-        std::mem::transmute::<usize, [u8; 8]>(i),
-        seed,
-      ))
-    })
-    .collect::<Vec<_>>();
-
-  integrator.each(|u, v, i| {
-    RNG.with(|rng| *rng.borrow_mut() = RNG::from_seed(thread_seed[i]));
+  integrator.each(|u, v| {
     let ray = camera.sample(u, v);
     light_transporter.radiance(ray.value)
   });
