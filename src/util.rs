@@ -36,3 +36,23 @@ impl ToColor for Vector3 {
 pub trait ToColor {
   fn to_color(self) -> Vector3;
 }
+
+pub trait Finite {
+  fn is_finite(self) -> bool;
+  fn is_nan(self) -> bool;
+  fn is_infinite(self) -> bool;
+}
+
+impl Finite for Vector3 {
+  fn is_finite(self) -> bool {
+    self.x.is_finite() && self.y.is_finite() && self.z.is_finite()
+  }
+
+  fn is_nan(self) -> bool {
+    self.x.is_nan() || self.y.is_nan() || self.z.is_nan()
+  }
+
+  fn is_infinite(self) -> bool {
+    self.x.is_infinite() || self.y.is_infinite() || self.z.is_infinite()
+  }
+}
