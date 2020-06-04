@@ -47,7 +47,7 @@ impl Geometry for Sphere {
     // r = o + t * d
     let position = ray.origin + ray.direction * distance;
     // 法線は球体中心から外向き
-    let normal = (position - self.position).normalize();
+    let normal = (position - self.position) / self.radius;
     Some(Intersection {
       position: position,
       normal: normal,
