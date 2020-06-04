@@ -23,11 +23,14 @@ impl Sphere {
 
 impl Geometry for Sphere {
   fn intersect(&self, ray: &Ray) -> Option<Intersection> {
-    let po = ray.origin - self.position;
-    let b = ray.direction.dot(po);
-    let c = po.sqr_norm() - self.radius * self.radius;
-    // 判別式 Δ = b^2 - a*c
-    let det = b * b - c;
+    let d = ray.direction;
+    let f = ray.origin - self.position;
+    let b = d.dot(f);
+    let r2 = self.radius * self.radius;
+    // 判別式 Δ = b^2 - a*c = (d.f)^2 - (f^2 - r^2)
+    // f^2 - r^2 で半径よりもはるか遠い点からの衝突の場合に情報落ちが起こる
+    // 変形 Δ = r^2 - (f - d(d.f))^2
+    let det = r2 - (f - d * b).sqr_norm();
     // 交差しない
     if det < 0.0 {
       return None;
