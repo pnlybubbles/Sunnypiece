@@ -82,11 +82,10 @@ impl<'a> Interaction<'a> {
     S: Acceleration,
   {
     let x = self.intersection.position;
-    let n = self.intersection.normal;
     // 新しいレイ
     let ray = Ray {
       direction: wi,
-      origin: x + n * EPS,
+      origin: x,
     };
     structure
       .interact(ray)
@@ -98,14 +97,13 @@ impl<'a> Interaction<'a> {
     S: Acceleration,
   {
     let x = self.intersection.position;
-    let n = self.intersection.normal;
     let path = x2 - x;
     // 可視チェック(1)
     if path.dot(self.intersection.normal) < 0.0 {
       return None;
     }
     let ray = Ray {
-      origin: x + n * EPS,
+      origin: x,
       direction: path.normalize(),
     };
     structure.interact(ray).and_then(|interaction| {
