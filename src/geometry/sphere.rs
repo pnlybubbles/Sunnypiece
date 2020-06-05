@@ -53,11 +53,16 @@ impl Geometry for Sphere {
     // r = o + t * d
     let position = ray.origin + ray.direction * distance;
     // 法線は球体中心から外向き
-    let normal = (position - self.position) / self.radius;
+    let normal = (position - self.position).normalize();
+    let position_refined = self.position + normal * self.radius;
+    let distance_refined = (position_refined - ray.origin).norm();
+    if distance_refined < EPS {
+      return None;
+    }
     Some(Intersection {
-      position: position,
+      position: position_refined,
       normal: normal,
-      distance: distance,
+      distance: distance_refined,
     })
   }
 
