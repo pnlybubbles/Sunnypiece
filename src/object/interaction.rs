@@ -18,6 +18,7 @@ pub struct Interaction<'a> {
   intersection: Intersection,
   ray: Ray,
   pub orienting_normal: Vector3,
+  is_backface: bool,
 }
 
 impl<'a> Eq for Interaction<'a> {}
@@ -50,22 +51,24 @@ impl<'a> Interaction<'a> {
     geometry: &'a Box<dyn Geometry + Send + Sync>,
     ray: Ray,
   ) -> Self {
-    let orienting_normal = intersection.normal.dot(-ray.direction).signum() * intersection.normal;
+    let dot_sign = intersection.normal.dot(-ray.direction).signum();
+    let orienting_normal = dot_sign * intersection.normal;
     Interaction {
       intersection: intersection,
       material: material,
       geometry: geometry,
       ray: ray,
       orienting_normal: orienting_normal,
+      is_backface: dot_sign == -1.0,
     }
   }
 
-  pub fn is_backface(&self) -> bool {
-    self.intersection.normal.dot(-self.ray.direction) < 0.0
-  }
-
   pub fn emittance(&self) -> Vector3 {
-    self.material.emittance()
+    if self.is_backface {
+      Vector3::zero()
+    } else {
+      self.material.emittance()
+    }
   }
 
   pub fn sample_material(&self) -> Sample<Vector3, pdf::SolidAngle> {
