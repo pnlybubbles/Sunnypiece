@@ -36,33 +36,33 @@ impl Geometry for Sphere {
     if det < 0.0 {
       return None;
     }
-    // b ~ √Δ の場合に桁落ちが起こる
-    // 桁落ちが起こらない方の解を使って導出する
     let c = f.sqr_norm() - r2;
+    if c > 0.0 && b > 0.0 {
+      // cが正のときはレイ始点が球の外
+      // bが正ときは級の中心がレイ始点より後ろ
+      return None;
+    }
+    // b ~ √Δ の場合に桁落ちが起こる
+    // 解の公式で桁落ちが起こらない方の解を計算して、もう一方をcから導出する
     let q = -b - b.signum() * det.sqrt();
     let t1 = q;
     let t2 = c / q;
-    let (tl, tg) = if t1 < t2 { (t1, t2) } else { (t2, t1) };
-    // 出射方向と反対側で交差
-    if tg < EPS {
-      return None;
-    }
-    // 近い方が正の場合はそれを採用
-    // それ以外(球体内部からの交差の場合)は正の方を採用
-    let distance = if tl > EPS { tl } else { tg };
+    // 球体の外側からの交差の場合は小さい方を採用
+    // 球体の内側からの交差の場合は大きい方を採用
+    let distance = if c > 0.0 { t1.min(t2) } else { t1.max(t2) };
     // r = o + t * d
     let position = ray.origin + ray.direction * distance;
     // 法線は球体中心から外向き
     let normal = (position - self.position).normalize();
     let position_refined = self.position + normal * self.radius;
-    let distance_refined = (position_refined - ray.origin).norm();
-    if distance_refined < EPS {
+    // 近すぎる衝突点は棄却 (self-intersection)
+    if distance < EPS {
       return None;
     }
     Some(Intersection {
       position: position_refined,
       normal: normal,
-      distance: distance_refined,
+      distance: distance,
     })
   }
 
