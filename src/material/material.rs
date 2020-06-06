@@ -8,6 +8,6 @@ pub trait Material {
   fn brdf(&self, wo: Vector3, wi: Vector3, n: Vector3, x: Vector3) -> Vector3;
   // 出射ベクトル, 法線ベクトル -> 入射ベクトル, 確率密度
   fn sample(&self, wo: Vector3, n: Vector3) -> Sample<Vector3, pdf::SolidAngle>;
-  // 入射ベクトル, 法線ベクトル -> 確率密度
-  fn pdf(&self, wi: Vector3, n: Vector3) -> pdf::SolidAngle;
+  // 出射ベクトル, 入射ベクトル, 法線ベクトル -> 確率密度
+  fn pdf(&self, wo: Vector3, wi: Vector3, n: Vector3) -> pdf::SolidAngle;
 }

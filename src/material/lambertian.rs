@@ -37,7 +37,7 @@ impl Material for Lambertian {
     }
   }
 
-  fn pdf(&self, wi: Vector3, n: Vector3) -> pdf::SolidAngle {
+  fn pdf(&self, _wo: Vector3, wi: Vector3, n: Vector3) -> pdf::SolidAngle {
     // cos項
     let cos_term = wi.dot(n);
     // 確率密度関数
