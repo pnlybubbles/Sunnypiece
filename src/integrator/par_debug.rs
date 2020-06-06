@@ -36,6 +36,8 @@ impl<'a, Pixel> Integrator<Pixel> for ParDebug<'a, Pixel> {
     let progress = Mutex::new(0);
 
     println!("Using seed: {}", self.seed);
+    println!("Resolution: {} x {}", self.film.width, self.film.height);
+    println!("SPP: {}", self.spp);
 
     let mut local_rng = RNG::seed_from_u64(self.seed);
     let thread_seed = (0..total)
