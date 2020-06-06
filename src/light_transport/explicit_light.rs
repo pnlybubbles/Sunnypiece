@@ -4,6 +4,7 @@ use math::*;
 use object::{GeomWeight, Interaction, LightSampler};
 use ray::Ray;
 use sample::mis::MIS;
+use util::*;
 
 pub struct ExplicitLight<'a, S>
 where
@@ -47,16 +48,23 @@ where
         // マテリアルに比例した光源サブパスの重点的サンプリング
         let li = geom.next.emittance();
         let light_pdf = geom.light_pdf(&self.light_sampler);
+        debug_assert!(light_pdf.map(|v| v.0).unwrap_or(0.0).is_finite());
         let bsdf_pdf = geom.bsdf_pdf();
+        debug_assert!(bsdf_pdf.0.is_finite());
         let light_contrib = light_pdf
           .map(|pdf| {
             let mis_weight = bsdf_pdf.power_hulistic(pdf, 2);
+            debug_assert!(mis_weight.is_finite());
+            debug_assert!(geom.bsdf().is_finite());
+            debug_assert!(geom.weight(bsdf_pdf).is_finite());
             li * geom.bsdf() * geom.weight(bsdf_pdf) * mis_weight
           })
           .unwrap_or(Vector3::zero());
+        debug_assert!(light_contrib.is_finite());
         // 接続先から再帰的にパスを生成して散乱成分の寄与を蓄積する
         let li_scatter = self.radiance_recursive(&geom.next, depth + 1);
         let scatter_contrib = li_scatter * geom.bsdf() * geom.weight(material_sample.pdf);
+        debug_assert!(scatter_contrib.is_finite());
         light_contrib + scatter_contrib
       }
     };
@@ -70,8 +78,11 @@ where
         // 明示的な光源サブパスの重点的サンプリング
         let li = geom.next.emittance();
         let light_pdf = light_sample.pdf;
+        debug_assert!(light_pdf.0.is_finite());
         let bsdf_pdf = geom.bsdf_pdf();
+        debug_assert!(bsdf_pdf.0.is_finite());
         let mis_weight = light_pdf.power_hulistic(bsdf_pdf, 2);
+        debug_assert!(mis_weight.is_finite());
         li * geom.bsdf() * geom.weight(light_pdf) * mis_weight
       }
     };
