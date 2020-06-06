@@ -72,6 +72,16 @@ fn main() {
     emittance: Vector3::zero(),
     albedo: Vector3::new(0.75, 0.75, 0.75),
   });
+  let grossy1: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
+    reflectance: Vector3::new(1.0, 1.0, 1.0),
+    roughness: 0.8,
+    ior: 100000.0,
+  });
+  let grossy2: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
+    reflectance: Vector3::new(1.0, 1.0, 1.0),
+    roughness: 0.2,
+    ior: 100000.0,
+  });
   let room_size = 10.0;
   let left = Object::new(
     Box::new(Sphere::new(Vector3::new(-1e4 - room_size, 0.0, 0.0), 1e4)),
@@ -99,9 +109,14 @@ fn main() {
     &white_diffuse,
   );
   let sphere1 = Object::new(
-    Box::new(Sphere::new(Vector3::new(0.0, -room_size + 3.0, 0.0), 3.0)),
+    Box::new(Sphere::new(Vector3::new(-3.2, -room_size + 3.0, 0.0), 3.0)),
     Matrix4::unit(),
-    &white_diffuse,
+    &grossy1,
+  );
+  let sphere2 = Object::new(
+    Box::new(Sphere::new(Vector3::new(3.2, -room_size + 3.0, 0.0), 3.0)),
+    Matrix4::unit(),
+    &grossy2,
   );
   // let light = Object::new(
   //   Box::new(Sphere::new(
@@ -131,7 +146,9 @@ fn main() {
     Matrix4::unit(),
     &light_diffuse,
   );
-  let objects = vec![sphere1, top, bottom, left, right, back, light1, light2];
+  let objects = vec![
+    sphere1, sphere2, top, bottom, left, right, back, light1, light2,
+  ];
   // let objects = vec![back];
 
   // 空間構造
