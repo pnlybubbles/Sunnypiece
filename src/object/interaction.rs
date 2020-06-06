@@ -144,10 +144,10 @@ impl<'a> Geom<'a> {
     let path_i = x2 - x_offset;
     let wi = path_i / next.intersection.distance;
     let wo = path_o / current.intersection.distance;
-    if wi.dot(n) < 0.0 {
+    if wi.dot(n) <= 0.0 {
       return None;
     }
-    if -wi.dot(n2) < 0.0 {
+    if -wi.dot(n2) <= 0.0 {
       return None;
     }
     debug_assert!(wo.dot(n) > 0.0);
