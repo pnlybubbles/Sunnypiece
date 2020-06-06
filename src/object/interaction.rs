@@ -194,6 +194,15 @@ impl<'a> GeomWeight<pdf::SolidAngle> for Geom<'a> {
 impl<'a> GeomWeight<pdf::Area> for Geom<'a> {
   fn weight(&self, pdf: pdf::Area) -> f32 {
     let pdf::Area(p) = pdf;
+    debug_assert!(
+      (self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_).sqr_norm() / p)
+        .is_finite(),
+      "\nwi . n = {}\n-wi . n2 = {}\n|x2 - x| = {}\np = {}\n",
+      self.wi.dot(self.n),
+      (-self.wi).dot(self.n2),
+      (self.x2 - self.x_).sqr_norm(),
+      p
+    );
     self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_).sqr_norm() / p
   }
 }

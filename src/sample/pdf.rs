@@ -34,6 +34,15 @@ impl SolidAngle {
     let SolidAngle(pdf) = self;
     let path = x2 - x;
     let wi = path.normalize();
+    debug_assert!(
+      (pdf * (-wi).dot(n2) / path.sqr_norm()).is_finite(),
+      "{} {} {} {} {}",
+      pdf,
+      path,
+      wi,
+      (-wi).dot(n2),
+      path.sqr_norm()
+    );
     Area(pdf * (-wi).dot(n2) / path.sqr_norm())
   }
 }
