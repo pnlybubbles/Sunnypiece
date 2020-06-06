@@ -178,7 +178,7 @@ impl<'a> Geom<'a> {
     self
       .current
       .material
-      .pdf(self.wi, self.n)
+      .pdf(self.wo, self.wi, self.n)
       .area_measure(self.x_offset, self.x2, self.n2)
   }
 
