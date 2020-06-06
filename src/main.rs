@@ -35,7 +35,7 @@ use std::path::Path;
 
 const WIDTH: usize = 512;
 const HEIGHT: usize = 512;
-const SPP: usize = 1000;
+const SPP: usize = 20;
 type Image = PPM;
 type RNG = rand::rngs::StdRng;
 
@@ -117,6 +117,7 @@ fn main() {
     &light_diffuse,
   );
   let objects = vec![sphere1, top, bottom, left, right, back, light];
+  // let objects = vec![back];
 
   // 空間構造
   let structure = acceleration::Linear::new(objects);
@@ -142,21 +143,6 @@ fn main() {
 
   // NAN, INFINITY チェック
   film.validate();
-
-  let max = film
-    .data
-    .iter()
-    .max_by(|a, b| a.x.partial_cmp(&b.x).unwrap_or(std::cmp::Ordering::Equal));
-
-  let min = film
-    .data
-    .iter()
-    .min_by(|a, b| a.x.partial_cmp(&b.x).unwrap_or(std::cmp::Ordering::Equal));
-
-  println!("{:?}", max);
-  println!("{:?}", min);
-
-  println!("{:?}", film.data[0]);
 
   // 保存
   let file_path = &format!(
