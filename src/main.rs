@@ -23,7 +23,7 @@ mod util;
 use camera::{Camera, IdealPinhole};
 use film::Format;
 use film::{Film, Save, Validate, PPM};
-use geometry::Sphere;
+use geometry::{Sphere, Triangle};
 use integrator::Integrator;
 use light_transport::Radiance;
 use material::Material;
@@ -35,7 +35,7 @@ use std::path::Path;
 
 const WIDTH: usize = 512;
 const HEIGHT: usize = 512;
-const SPP: usize = 20;
+const SPP: usize = 100;
 type Image = PPM;
 type RNG = rand::rngs::StdRng;
 
@@ -57,7 +57,7 @@ fn main() {
 
   // シーン
   let light_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
-    emittance: Vector3::new(5.0, 5.0, 5.0),
+    emittance: Vector3::new(20.0, 20.0, 20.0),
     albedo: Vector3::zero(),
   });
   let red_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
@@ -111,12 +111,27 @@ fn main() {
   //   Matrix4::unit(),
   //   &light_diffuse,
   // );
-  let light = Object::new(
-    Box::new(Sphere::new(Vector3::new(0.0, room_size - 2.5, 0.0), 2.0)),
+  // let light = Object::new(
+  //   Box::new(Sphere::new(Vector3::new(0.0, room_size - 2.5, 0.0), 2.0)),
+  //   Matrix4::unit(),
+  //   &light_diffuse,
+  // );
+  let ls = 3.0;
+  let l0 = Vector3::new(-ls / 2.0, room_size - 0.5, -ls / 2.0);
+  let l1 = l0 + Vector3::new(ls, 0.0, 0.0);
+  let l2 = l0 + Vector3::new(0.0, 0.0, ls);
+  let l3 = l0 + Vector3::new(ls, 0.0, ls);
+  let light1 = Object::new(
+    Box::new(Triangle::new(l0, l1, l2)),
     Matrix4::unit(),
     &light_diffuse,
   );
-  let objects = vec![sphere1, top, bottom, left, right, back, light];
+  let light2 = Object::new(
+    Box::new(Triangle::new(l2, l1, l3)),
+    Matrix4::unit(),
+    &light_diffuse,
+  );
+  let objects = vec![sphere1, top, bottom, left, right, back, light1, light2];
   // let objects = vec![back];
 
   // 空間構造
@@ -132,7 +147,7 @@ fn main() {
   };
 
   // 積分器
-  let mut integrator = integrator::ParDebug::new(&mut film, SPP, seed);
+  let mut integrator = integrator::ParPixel::new(&mut film, SPP);
   // 光輸送
   let light_transporter = light_transport::ExplicitLight::new(&structure);
 

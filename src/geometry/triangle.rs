@@ -12,7 +12,7 @@ pub struct Triangle {
 }
 
 impl Triangle {
-  fn new(p0: Vector3, p1: Vector3, p2: Vector3) -> Self {
+  pub fn new(p0: Vector3, p1: Vector3, p2: Vector3) -> Self {
     Triangle {
       p0: p0,
       p1: p1,
