@@ -150,3 +150,12 @@ impl<'a> Mul<Vector3> for &'a Matrix4 {
     out.into()
   }
 }
+
+impl From<[Vector3; 3]> for Matrix4 {
+  fn from(v: [Vector3; 3]) -> Self {
+    Matrix4::new([
+      v[0].x, v[1].x, v[2].x, 0.0, v[0].y, v[1].y, v[2].y, 0.0, v[0].z, v[1].z, v[2].z, 0.0, 0.0,
+      0.0, 0.0, 0.0,
+    ])
+  }
+}

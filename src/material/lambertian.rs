@@ -21,11 +21,11 @@ impl Material for Lambertian {
   fn sample(&self, _out_: Vector3, n: Vector3) -> Sample<Vector3, pdf::SolidAngle> {
     // 反射点での法線方向を基準にした正規直交基底を生成
     let w = n;
-    let (u, v) = w.orthonormal_basis();
+    let basis = w.orthonormal_basis();
     // 球面極座標を用いて反射点から単位半球面上のある一点へのベクトルを生成
     // (cosにしたがって重点的にサンプル)
     let sample = Sampler::hemisphere_cos_importance();
-    let in_ = u * sample.x + v * sample.y + w * sample.z;
+    let in_ = &basis * sample;
     // cos項
     let cos_term = in_.dot(n);
     // 確率密度関数
@@ -44,6 +44,7 @@ impl Material for Lambertian {
     // (cosにしたがって重点的にサンプル) cosθ / π
     let pdf = cos_term / PI;
     debug_assert!(pdf.is_finite(), "{}", pdf);
+    debug_assert!(cos_term > 0.0, "{}", cos_term);
     pdf::SolidAngle(pdf)
   }
 }
