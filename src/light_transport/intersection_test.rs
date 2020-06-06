@@ -34,7 +34,7 @@ where
       Some(point) => {
         for _ in 0..1000 {
           let sample = Sampler::hemisphere_uniform();
-          let basis = point.normal().orthonormal_basis();
+          let basis = point.orienting_normal.orthonormal_basis();
           let direction = &basis * sample;
           match point.connect_direction(self.structure, direction) {
             None => (),

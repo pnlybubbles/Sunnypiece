@@ -17,6 +17,7 @@ pub struct Interaction<'a> {
   geometry: &'a Box<dyn Geometry + Send + Sync>,
   intersection: Intersection,
   ray: Ray,
+  pub orienting_normal: Vector3,
 }
 
 impl<'a> Eq for Interaction<'a> {}
@@ -49,16 +50,14 @@ impl<'a> Interaction<'a> {
     geometry: &'a Box<dyn Geometry + Send + Sync>,
     ray: Ray,
   ) -> Self {
+    let orienting_normal = intersection.normal.dot(-ray.direction).signum() * intersection.normal;
     Interaction {
       intersection: intersection,
       material: material,
       geometry: geometry,
       ray: ray,
+      orienting_normal: orienting_normal,
     }
-  }
-
-  pub fn normal(&self) -> Vector3 {
-    self.intersection.normal
   }
 
   pub fn is_backface(&self) -> bool {
@@ -84,12 +83,13 @@ impl<'a> Interaction<'a> {
     let x = self.intersection.position;
     // 新しいレイ
     let ray = Ray {
+      origin: x + self.orienting_normal * EPS,
       direction: wi,
-      origin: x,
     };
-    structure
-      .interact(ray)
-      .map(|interaction| Geom::new(self, interaction))
+    structure.interact(ray).and_then(|interaction| {
+      // 可視チェック(1)
+      Geom::new(self, interaction)
+    })
   }
 
   pub fn connect_point<S>(&self, structure: &'a S, x2: Vector3) -> Option<Geom>
@@ -99,52 +99,72 @@ impl<'a> Interaction<'a> {
     let x = self.intersection.position;
     let path = x2 - x;
     // 可視チェック(1)
-    if path.dot(self.intersection.normal) < 0.0 {
+    if path.dot(self.orienting_normal) < 0.0 {
       return None;
     }
     let ray = Ray {
-      origin: x,
+      origin: x + self.orienting_normal * EPS,
       direction: path.normalize(),
     };
     structure.interact(ray).and_then(|interaction| {
       // 可視チェック(2)
-      if interaction.intersection.distance.approx_eq(path.norm()) {
-        Some(Geom::new(self, interaction))
-      } else {
-        None
+      if !interaction.intersection.distance.approx_eq(path.norm()) {
+        return None;
       }
+      Geom::new(self, interaction)
     })
   }
 }
 
 pub struct Geom<'a> {
-  x: Vector3,
-  x_: Vector3,
-  x1: Vector3,
-  x2: Vector3,
-  n: Vector3,
-  n2: Vector3,
-  wo: Vector3,
-  wi: Vector3,
+  pub x: Vector3,
+  pub x_offset: Vector3,
+  pub x1: Vector3,
+  pub x2: Vector3,
+  pub n: Vector3,
+  pub n2: Vector3,
+  pub wo: Vector3,
+  pub wi: Vector3,
+  pub path_o: Vector3,
+  pub path_i: Vector3,
   pub current: &'a Interaction<'a>,
   pub next: Interaction<'a>,
 }
 
 impl<'a> Geom<'a> {
-  fn new(current: &'a Interaction, next: Interaction<'a>) -> Self {
+  fn new(current: &'a Interaction, next: Interaction<'a>) -> Option<Self> {
     debug_assert!(current.intersection.position.approx_eq(next.ray.origin));
-    Geom {
-      x: current.intersection.position,
-      x_: next.ray.origin,
-      x1: current.ray.origin,
-      x2: next.intersection.position,
-      n: current.intersection.normal,
-      n2: next.intersection.normal,
-      wo: -current.ray.direction,
-      wi: next.ray.direction,
+    let x = current.intersection.position;
+    let x_offset = next.ray.origin;
+    let x1 = current.ray.origin;
+    let x2 = next.intersection.position;
+    let n = current.orienting_normal;
+    let n2 = next.orienting_normal;
+    let path_o = x1 - x;
+    let path_i = x2 - x_offset;
+    let wi = path_i / next.intersection.distance;
+    let wo = path_o / current.intersection.distance;
+    if wi.dot(n) < 0.0 {
+      return None;
+    }
+    if -wi.dot(n2) < 0.0 {
+      return None;
+    }
+    debug_assert!(wo.dot(n) > 0.0);
+    Some(Geom {
+      x: x,
+      x_offset: x_offset,
+      x1: x1,
+      x2: x2,
+      n: n,
+      n2: n2,
+      wo: wo,
+      wi: wi,
+      path_o: path_o,
+      path_i: path_i,
       current: current,
       next: next,
-    }
+    })
   }
 
   pub fn bsdf(&self) -> Vector3 {
@@ -156,11 +176,11 @@ impl<'a> Geom<'a> {
       .current
       .material
       .pdf(self.wi, self.n)
-      .area_measure(self.x_, self.x2, self.n2)
+      .area_measure(self.x_offset, self.x2, self.n2)
   }
 
   pub fn g(&self) -> f32 {
-    self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_).sqr_norm()
+    self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_offset).sqr_norm()
   }
 
   pub fn light_pdf(&self, light_sampler: &LightSampler) -> Option<pdf::Area> {
@@ -195,14 +215,14 @@ impl<'a> GeomWeight<pdf::Area> for Geom<'a> {
   fn weight(&self, pdf: pdf::Area) -> f32 {
     let pdf::Area(p) = pdf;
     debug_assert!(
-      (self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_).sqr_norm() / p)
+      (self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_offset).sqr_norm() / p)
         .is_finite(),
       "\nwi . n = {}\n-wi . n2 = {}\n|x2 - x| = {}\np = {}\n",
       self.wi.dot(self.n),
       (-self.wi).dot(self.n2),
-      (self.x2 - self.x_).sqr_norm(),
+      (self.x2 - self.x_offset).sqr_norm(),
       p
     );
-    self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_).sqr_norm() / p
+    self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_offset).sqr_norm() / p
   }
 }
