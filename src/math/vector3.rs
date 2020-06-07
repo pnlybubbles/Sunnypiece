@@ -2,7 +2,7 @@ use super::num::Zero;
 use super::vector::{Cross, Dot, Map};
 use super::vector4::Vector4;
 use std::fmt;
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, Neg, Sub};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vector3 {
@@ -30,6 +30,19 @@ impl Zero for Vector3 {
 impl fmt::Display for Vector3 {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
     write!(f, "({}, {}, {})", self.x, self.y, self.z)
+  }
+}
+
+impl Index<usize> for Vector3 {
+  type Output = f32;
+
+  fn index(&self, i: usize) -> &f32 {
+    match i {
+      0 => &self.x,
+      1 => &self.y,
+      2 => &self.z,
+      _ => panic!("Vector3 index out of bounds."),
+    }
   }
 }
 
