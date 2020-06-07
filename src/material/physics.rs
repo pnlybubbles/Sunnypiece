@@ -1,6 +1,6 @@
 use math::*;
 
-trait BoundaryResponse
+pub trait BoundaryResponse
 where
   Self: Sized,
 {
