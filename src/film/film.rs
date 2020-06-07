@@ -1,6 +1,8 @@
 use math::Vector3;
+use rand::Rng;
 use std::path::Path;
 use util::*;
+use RNG;
 
 pub struct Film<T> {
   /**
@@ -37,7 +39,14 @@ impl<T: Clone> Film<T> {
       let x = index % w;
       // flip y
       let y = h - index / w - 1;
-      (x as f32 / w as f32, y as f32 / h as f32)
+
+      RNG.with(|rng| {
+        // super sampling
+        let su = rng.borrow_mut().gen::<f32>();
+        let sv = rng.borrow_mut().gen::<f32>();
+
+        ((x as f32 + su) / w as f32, (y as f32 + sv) / h as f32)
+      })
     }
   }
 
