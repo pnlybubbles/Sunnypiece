@@ -23,3 +23,11 @@ impl BoundaryResponse for Vector3 {
     }
   }
 }
+
+pub struct Fresnel;
+
+impl Fresnel {
+  pub fn schlick(f0: Vector3, wo: Vector3, n: Vector3) -> Vector3 {
+    f0 + (Vector3::fill(1.0) - f0) * (1.0 - wo.dot(n)).powi(5)
+  }
+}
