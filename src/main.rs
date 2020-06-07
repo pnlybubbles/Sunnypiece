@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+extern crate image;
 extern crate rand;
 extern crate rand_core;
 extern crate rand_mt;
@@ -22,7 +23,7 @@ mod util;
 
 use camera::{Camera, IdealPinhole};
 use film::Format;
-use film::{Film, Save, Validate, PPM};
+use film::{Film, Save, Validate, PNG};
 use geometry::{Sphere, Triangle};
 use integrator::Integrator;
 use light_transport::Radiance;
@@ -36,7 +37,7 @@ use std::path::Path;
 const WIDTH: usize = 512;
 const HEIGHT: usize = 512;
 const SPP: usize = 100;
-type Image = PPM;
+type Image = PNG;
 type RNG = rand::rngs::StdRng;
 
 thread_local! {
@@ -189,5 +190,4 @@ fn main() {
     let correct = v.map(|v| v.min(1.0).max(0.0).powf(1.0 / gamma) * 255.0);
     [correct.x as u8, correct.y as u8, correct.z as u8]
   })
-  .unwrap();
 }

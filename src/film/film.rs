@@ -1,5 +1,4 @@
 use math::Vector3;
-use std::io;
 use std::path::Path;
 use util::*;
 
@@ -68,7 +67,7 @@ impl Validate for Film<Vector3> {
 pub trait Save<T>: Format {
   type Output;
 
-  fn save(&Film<T>, &Path, impl Fn(&T) -> Self::Output) -> io::Result<()>;
+  fn save(&Film<T>, &Path, impl Fn(&T) -> Self::Output);
 }
 
 pub trait Format {
