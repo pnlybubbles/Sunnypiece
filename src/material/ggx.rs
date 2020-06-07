@@ -63,10 +63,9 @@ impl Material for GGX {
     // (brdfの分布にしたがって重点的にサンプル)
     let r1 = 2.0 * PI * rand::random::<f32>();
     let r2 = rand::random::<f32>();
-    let tan = self.alpha() * (r2 / (1.0 - r2)).sqrt();
-    let x = 1.0 + tan * tan;
-    let cos = 1.0 / x.sqrt();
-    let sin = tan / x.sqrt();
+    let tan = self.alpha() * r2.sqrt() / (1.0 - r2).sqrt();
+    let cos = 1.0 / (1.0 + tan * tan).sqrt();
+    let sin = tan * cos;
     // ハーフベクトルをサンプリング
     let wh = &basis * Vector3::new(r1.cos() * sin, r1.sin() * sin, cos);
     // 入射ベクトル
