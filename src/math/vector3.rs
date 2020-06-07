@@ -12,8 +12,12 @@ pub struct Vector3 {
 }
 
 impl Vector3 {
-  pub fn new(x: f32, y: f32, z: f32) -> Vector3 {
+  pub fn new(x: f32, y: f32, z: f32) -> Self {
     Vector3 { x: x, y: y, z: z }
+  }
+
+  pub fn fill(v: f32) -> Self {
+    Vector3 { x: v, y: v, z: v }
   }
 }
 
