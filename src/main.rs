@@ -72,12 +72,10 @@ fn main() {
   let grossy1: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
     reflectance: Vector3::new(1.0, 1.0, 1.0),
     roughness: 0.8,
-    ior: 100000.0,
   });
   let grossy2: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
     reflectance: Vector3::new(1.0, 1.0, 1.0),
     roughness: 0.3,
-    ior: 100000.0,
   });
   let room_size = 10.0;
   let left = Object::new(

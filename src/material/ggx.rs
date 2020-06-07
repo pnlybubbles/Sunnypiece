@@ -2,12 +2,11 @@ use super::physics::*;
 use super::Material;
 use math::*;
 use sample::*;
+use util::Finite;
 
 pub struct GGX {
   // 反射率
   pub reflectance: Vector3,
-  // 屈折率
-  pub ior: f32,
   // ラフネス
   pub roughness: f32,
 }
@@ -33,14 +32,6 @@ impl GGX {
     let x = (a2 - 1.0) * m.dot(n).powi(2) + 1.0;
     a2 / (PI * x * x)
   }
-
-  fn fresnel_schlick(&self, wo: Vector3, m: Vector3) -> f32 {
-    let nnn = 1.0 - self.ior;
-    let nnp = 1.0 + self.ior;
-    let f_0 = (nnn * nnn) / (nnp * nnp);
-    let c = wo.dot(m);
-    f_0 + (1.0 - f_0) * (1.0 - c).powi(5)
-  }
 }
 
 impl Material for GGX {
@@ -56,8 +47,8 @@ impl Material for GGX {
     // ハーフベクトル
     let wh = (wo + wi).normalize();
     // Torrance-Sparrow model
-    let f = self.fresnel_schlick(wo, wh);
-    debug_assert!(f >= 0.0 && f <= 1.0 && f.is_finite(), "f: {}", f);
+    let f = Fresnel::schlick(self.reflectance, wo, wh);
+    debug_assert!(f.is_finite(), "f: {}", f);
     let g = self.g_ggx(wi, wo, n);
     debug_assert!(g >= 0.0 && g <= 1.0 && g.is_finite(), "g: {}", g);
     let d = self.d_ggx(wh, n);
