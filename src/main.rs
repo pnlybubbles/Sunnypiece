@@ -57,10 +57,6 @@ fn main() {
   let camera = IdealPinhole::new(39.6 * PI / 180.0, film.aspect(), camera_matrix);
 
   // シーン
-  let light_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
-    emittance: Vector3::new(20.0, 20.0, 20.0),
-    albedo: Vector3::zero(),
-  });
   let red_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
     emittance: Vector3::zero(),
     albedo: Vector3::new(0.75, 0.25, 0.25),
@@ -80,7 +76,7 @@ fn main() {
   });
   let grossy2: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
     reflectance: Vector3::new(1.0, 1.0, 1.0),
-    roughness: 0.2,
+    roughness: 0.3,
     ior: 100000.0,
   });
   let room_size = 10.0;
@@ -110,29 +106,21 @@ fn main() {
     &white_diffuse,
   );
   let sphere1 = Object::new(
-    Box::new(Sphere::new(Vector3::new(-3.2, -room_size + 3.0, 0.0), 3.0)),
+    Box::new(Sphere::new(Vector3::new(-4.0, -room_size + 3.0, 0.0), 3.0)),
     Matrix4::unit(),
     &grossy1,
   );
   let sphere2 = Object::new(
-    Box::new(Sphere::new(Vector3::new(3.2, -room_size + 3.0, 0.0), 3.0)),
+    Box::new(Sphere::new(Vector3::new(4.0, -room_size + 3.0, 0.0), 3.0)),
     Matrix4::unit(),
     &grossy2,
   );
-  // let light = Object::new(
-  //   Box::new(Sphere::new(
-  //     Vector3::new(0.0, room_size + 200.0 - 0.1, 0.0),
-  //     200.0,
-  //   )),
-  //   Matrix4::unit(),
-  //   &light_diffuse,
-  // );
-  // let light = Object::new(
-  //   Box::new(Sphere::new(Vector3::new(0.0, room_size - 2.5, 0.0), 2.0)),
-  //   Matrix4::unit(),
-  //   &light_diffuse,
-  // );
-  let ls = 3.0;
+  let ls = 3_f32;
+  let le = 675.0 / ls.powi(2);
+  let light_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
+    emittance: Vector3::new(le, le, le),
+    albedo: Vector3::zero(),
+  });
   let l0 = Vector3::new(-ls / 2.0, room_size - 0.5, -ls / 2.0);
   let l1 = l0 + Vector3::new(ls, 0.0, 0.0);
   let l2 = l0 + Vector3::new(0.0, 0.0, ls);
