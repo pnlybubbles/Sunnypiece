@@ -71,7 +71,7 @@ fn main() {
   });
   let grossy1: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
     reflectance: Vector3::new(1.0, 1.0, 1.0),
-    roughness: 0.8,
+    roughness: 0.7,
   });
   let grossy2: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
     reflectance: Vector3::new(1.0, 1.0, 1.0),
@@ -113,13 +113,13 @@ fn main() {
     Matrix4::unit(),
     &grossy2,
   );
-  let ls = 3_f32;
+  let ls = 6_f32;
   let le = 675.0 / ls.powi(2);
   let light_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
     emittance: Vector3::new(le, le, le),
     albedo: Vector3::zero(),
   });
-  let l0 = Vector3::new(-ls / 2.0, room_size - 0.5, -ls / 2.0);
+  let l0 = Vector3::new(-ls / 2.0, room_size - 0.3, -ls / 2.0);
   let l1 = l0 + Vector3::new(ls, 0.0, 0.0);
   let l2 = l0 + Vector3::new(0.0, 0.0, ls);
   let l3 = l0 + Vector3::new(ls, 0.0, ls);

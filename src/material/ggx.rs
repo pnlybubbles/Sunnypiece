@@ -23,14 +23,13 @@ impl GGX {
   fn g1(&self, v: Vector3, n: Vector3) -> f32 {
     let a2 = self.alpha() * self.alpha();
     let cos = v.dot(n);
-    let tan = 1.0 / (cos * cos) - 1.0;
-    special::chi(cos) * 2.0 / (1.0 + (1.0 + a2 * tan * tan).sqrt())
+    let tan2 = 1.0 / cos.powi(2) - 1.0;
+    special::chi(cos) * 2.0 / (1.0 + (1.0 + a2 * tan2).sqrt())
   }
 
   fn d_ggx(&self, m: Vector3, n: Vector3) -> f32 {
-    let a2 = self.alpha() * self.alpha();
-    let x = (a2 - 1.0) * m.dot(n).powi(2) + 1.0;
-    a2 / (PI * x * x)
+    let a2 = self.alpha().powi(2);
+    a2 / (PI * ((a2 - 1.0) * m.dot(n).powi(2) + 1.0).powi(2))
   }
 }
 
@@ -40,20 +39,16 @@ impl Material for GGX {
   }
 
   fn brdf(&self, wi: Vector3, wo: Vector3, n: Vector3, _x: Vector3) -> Vector3 {
-    if wo.dot(n) <= 0.0 {
-      return Vector3::zero();
-    }
-    debug_assert!(wi.dot(n) > 0.0, "o.n  = {}", wi.dot(n));
     // ハーフベクトル
     let wh = (wo + wi).normalize();
     // Torrance-Sparrow model
     let f = Fresnel::schlick(self.reflectance, wo, wh);
-    debug_assert!(f.is_finite(), "f: {}", f);
+    debug_assert!(f.x > 0.0 && f.is_finite(), "f: {}", f);
     let g = self.g_ggx(wi, wo, n);
     debug_assert!(g >= 0.0 && g <= 1.0 && g.is_finite(), "g: {}", g);
     let d = self.d_ggx(wh, n);
     debug_assert!(d >= 0.0 && d.is_finite(), "d: {}", d);
-    self.reflectance * f * (g * d / (4.0 * wi.dot(n) * wo.dot(n)))
+    f * (g * d / (4.0 * wi.dot(n) * wo.dot(n)))
   }
 
   fn sample(&self, wi: Vector3, n: Vector3) -> Sample<Vector3, pdf::SolidAngle> {
@@ -71,10 +66,10 @@ impl Material for GGX {
     // 入射ベクトル
     let wo = wi.reflect(wh);
     // 確率密度関数
-    let pdf = self.d_ggx(wh, n) * wh.dot(n) / (4.0 * wo.dot(wh) * wo.dot(n));
+    let pdf = self.pdf(wi, wo, n);
     Sample {
       value: wo,
-      pdf: pdf::SolidAngle(pdf),
+      pdf: pdf,
     }
   }
 
@@ -82,7 +77,7 @@ impl Material for GGX {
     // ハーフベクトル
     let wh = (wo + wi).normalize();
     // 確率密度関数
-    let pdf = self.d_ggx(wh, n) * wh.dot(n) / (4.0 * wo.dot(wh) * wo.dot(n));
+    let pdf = self.d_ggx(wh, n) * wh.dot(n) / (4.0 * wo.dot(n) * wi.dot(wh));
     pdf::SolidAngle(pdf)
   }
 }
