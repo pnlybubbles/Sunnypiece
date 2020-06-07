@@ -33,16 +33,16 @@ impl SolidAngle {
   pub fn area_measure(self, x: Vector3, x2: Vector3, n2: Vector3) -> Area {
     let SolidAngle(pdf) = self;
     let path = x2 - x;
-    let wi = path.normalize();
+    let wo = path.normalize();
     debug_assert!(
-      (pdf * (-wi).dot(n2) / path.sqr_norm()).is_finite(),
+      (pdf * (-wo).dot(n2) / path.sqr_norm()).is_finite(),
       "{} {} {} {} {}",
       pdf,
       path,
-      wi,
-      (-wi).dot(n2),
+      wo,
+      (-wo).dot(n2),
       path.sqr_norm()
     );
-    Area(pdf * (-wi).dot(n2) / path.sqr_norm())
+    Area(pdf * (-wo).dot(n2) / path.sqr_norm())
   }
 }

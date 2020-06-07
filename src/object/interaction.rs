@@ -73,13 +73,13 @@ impl<'a> Interaction<'a> {
 
   pub fn sample_material(&self) -> Sample<Vector3, pdf::SolidAngle> {
     let n = self.intersection.normal;
-    let wo = -self.ray.direction;
+    let wi = -self.ray.direction;
     // BRDFに応じたサンプリング
     // NOTE: 方向ベクトルがサンプリングされる
-    self.material.sample(wo, n)
+    self.material.sample(wi, n)
   }
 
-  pub fn connect_direction<S>(&self, structure: &'a S, wi: Vector3) -> Option<Geom>
+  pub fn connect_direction<S>(&self, structure: &'a S, wo: Vector3) -> Option<Geom>
   where
     S: Acceleration,
   {
@@ -87,7 +87,7 @@ impl<'a> Interaction<'a> {
     // 新しいレイ
     let ray = Ray {
       origin: x + self.orienting_normal * EPS,
-      direction: wi,
+      direction: wo,
     };
     structure.interact(ray).and_then(|interaction| {
       // 可視チェック(1)
@@ -126,8 +126,8 @@ pub struct Geom<'a> {
   pub x2: Vector3,
   pub n: Vector3,
   pub n2: Vector3,
-  pub wo: Vector3,
   pub wi: Vector3,
+  pub wo: Vector3,
   pub path_o: Vector3,
   pub path_i: Vector3,
   pub current: &'a Interaction<'a>,
@@ -145,15 +145,15 @@ impl<'a> Geom<'a> {
     let n2 = next.orienting_normal;
     let path_o = x1 - x;
     let path_i = x2 - x_offset;
-    let wi = path_i / next.intersection.distance;
-    let wo = path_o / current.intersection.distance;
-    if wi.dot(n) <= 0.0 {
+    let wo = path_i / next.intersection.distance;
+    let wi = path_o / current.intersection.distance;
+    if wo.dot(n) <= 0.0 {
       return None;
     }
-    if -wi.dot(n2) <= 0.0 {
+    if -wo.dot(n2) <= 0.0 {
       return None;
     }
-    debug_assert!(wo.dot(n) > 0.0);
+    debug_assert!(wi.dot(n) > 0.0);
     Some(Geom {
       x: x,
       x_offset: x_offset,
@@ -161,8 +161,8 @@ impl<'a> Geom<'a> {
       x2: x2,
       n: n,
       n2: n2,
-      wo: wo,
       wi: wi,
+      wo: wo,
       path_o: path_o,
       path_i: path_i,
       current: current,
@@ -171,19 +171,19 @@ impl<'a> Geom<'a> {
   }
 
   pub fn bsdf(&self) -> Vector3 {
-    self.current.material.brdf(self.wo, self.wi, self.n, self.x)
+    self.current.material.brdf(self.wi, self.wo, self.n, self.x)
   }
 
   pub fn bsdf_pdf(&self) -> pdf::Area {
     self
       .current
       .material
-      .pdf(self.wo, self.wi, self.n)
+      .pdf(self.wi, self.wo, self.n)
       .area_measure(self.x_offset, self.x2, self.n2)
   }
 
   pub fn g(&self) -> f32 {
-    self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_offset).sqr_norm()
+    self.wo.dot(self.n) * (-self.wo).dot(self.n2) / (self.x2 - self.x_offset).sqr_norm()
   }
 
   pub fn light_pdf(&self, light_sampler: &LightSampler) -> Option<pdf::Area> {
@@ -206,11 +206,11 @@ impl<'a> GeomWeight<pdf::SolidAngle> for Geom<'a> {
   fn weight(&self, pdf: pdf::SolidAngle) -> f32 {
     let pdf::SolidAngle(p) = pdf;
     debug_assert!(
-      (self.wi.dot(self.n) / p).is_finite(),
+      (self.wo.dot(self.n) / p).is_finite(),
       "{}",
-      self.wi.dot(self.n) / p
+      self.wo.dot(self.n) / p
     );
-    self.wi.dot(self.n) / p
+    self.wo.dot(self.n) / p
   }
 }
 
@@ -218,14 +218,14 @@ impl<'a> GeomWeight<pdf::Area> for Geom<'a> {
   fn weight(&self, pdf: pdf::Area) -> f32 {
     let pdf::Area(p) = pdf;
     debug_assert!(
-      (self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_offset).sqr_norm() / p)
+      (self.wo.dot(self.n) * (-self.wo).dot(self.n2) / (self.x2 - self.x_offset).sqr_norm() / p)
         .is_finite(),
-      "\nwi . n = {}\n-wi . n2 = {}\n|x2 - x| = {}\np = {}\n",
-      self.wi.dot(self.n),
-      (-self.wi).dot(self.n2),
+      "\nwo . n = {}\n-wo . n2 = {}\n|x2 - x| = {}\np = {}\n",
+      self.wo.dot(self.n),
+      (-self.wo).dot(self.n2),
       (self.x2 - self.x_offset).sqr_norm(),
       p
     );
-    self.wi.dot(self.n) * (-self.wi).dot(self.n2) / (self.x2 - self.x_offset).sqr_norm() / p
+    self.wo.dot(self.n) * (-self.wo).dot(self.n2) / (self.x2 - self.x_offset).sqr_norm() / p
   }
 }

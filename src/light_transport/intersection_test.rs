@@ -39,11 +39,11 @@ where
           match point.connect_direction(self.structure, direction) {
             None => (),
             Some(geom) => {
-              if geom.current.orienting_normal.dot(geom.wi) > EPS {
+              if geom.current.orienting_normal.dot(geom.wo) > EPS {
                 println!(
                   "{} {} {}",
-                  geom.current.orienting_normal.dot(geom.wi),
-                  geom.next.orienting_normal.dot(-geom.wi),
+                  geom.current.orienting_normal.dot(geom.wo),
+                  geom.next.orienting_normal.dot(-geom.wo),
                   geom.path_i.norm(),
                 );
                 return Vector3::new(1.0, 0.0, 0.0);

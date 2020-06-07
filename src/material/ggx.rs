@@ -17,8 +17,8 @@ impl GGX {
     self.roughness * self.roughness
   }
 
-  fn g_ggx(&self, wo: Vector3, wi: Vector3, n: Vector3) -> f32 {
-    self.g1(wi, n) * self.g1(wo, n)
+  fn g_ggx(&self, wi: Vector3, wo: Vector3, n: Vector3) -> f32 {
+    self.g1(wo, n) * self.g1(wi, n)
   }
 
   fn g1(&self, v: Vector3, n: Vector3) -> f32 {
@@ -34,11 +34,11 @@ impl GGX {
     a2 / (PI * x * x)
   }
 
-  fn fresnel_schlick(&self, wi: Vector3, m: Vector3) -> f32 {
+  fn fresnel_schlick(&self, wo: Vector3, m: Vector3) -> f32 {
     let nnn = 1.0 - self.ior;
     let nnp = 1.0 + self.ior;
     let f_0 = (nnn * nnn) / (nnp * nnp);
-    let c = wi.dot(m);
+    let c = wo.dot(m);
     f_0 + (1.0 - f_0) * (1.0 - c).powi(5)
   }
 }
@@ -48,24 +48,24 @@ impl Material for GGX {
     Vector3::zero()
   }
 
-  fn brdf(&self, wo: Vector3, wi: Vector3, n: Vector3, _x: Vector3) -> Vector3 {
-    if wi.dot(n) <= 0.0 {
+  fn brdf(&self, wi: Vector3, wo: Vector3, n: Vector3, _x: Vector3) -> Vector3 {
+    if wo.dot(n) <= 0.0 {
       return Vector3::zero();
     }
-    debug_assert!(wo.dot(n) > 0.0, "o.n  = {}", wo.dot(n));
+    debug_assert!(wi.dot(n) > 0.0, "o.n  = {}", wi.dot(n));
     // ハーフベクトル
-    let wh = (wi + wo).normalize();
+    let wh = (wo + wi).normalize();
     // Torrance-Sparrow model
-    let f = self.fresnel_schlick(wi, wh);
+    let f = self.fresnel_schlick(wo, wh);
     debug_assert!(f >= 0.0 && f <= 1.0 && f.is_finite(), "f: {}", f);
-    let g = self.g_ggx(wo, wi, n);
+    let g = self.g_ggx(wi, wo, n);
     debug_assert!(g >= 0.0 && g <= 1.0 && g.is_finite(), "g: {}", g);
     let d = self.d_ggx(wh, n);
     debug_assert!(d >= 0.0 && d.is_finite(), "d: {}", d);
-    self.reflectance * f * (g * d / (4.0 * wo.dot(n) * wi.dot(n)))
+    self.reflectance * f * (g * d / (4.0 * wi.dot(n) * wo.dot(n)))
   }
 
-  fn sample(&self, wo: Vector3, n: Vector3) -> Sample<Vector3, pdf::SolidAngle> {
+  fn sample(&self, wi: Vector3, n: Vector3) -> Sample<Vector3, pdf::SolidAngle> {
     // 法線方向を基準にした正規直交基底を生成
     let basis = n.orthonormal_basis();
     // 球面極座標を用いて反射点から単位半球面上のある一点へのベクトルを生成
@@ -79,20 +79,20 @@ impl Material for GGX {
     // ハーフベクトルをサンプリング
     let wh = &basis * Vector3::new(r1.cos() * sin, r1.sin() * sin, cos);
     // 入射ベクトル
-    let wi = wo.reflect(wh);
+    let wo = wi.reflect(wh);
     // 確率密度関数
-    let pdf = self.d_ggx(wh, n) * wh.dot(n) / (4.0 * wi.dot(wh) * wi.dot(n));
+    let pdf = self.d_ggx(wh, n) * wh.dot(n) / (4.0 * wo.dot(wh) * wo.dot(n));
     Sample {
-      value: wi,
+      value: wo,
       pdf: pdf::SolidAngle(pdf),
     }
   }
 
-  fn pdf(&self, wo: Vector3, wi: Vector3, n: Vector3) -> pdf::SolidAngle {
+  fn pdf(&self, wi: Vector3, wo: Vector3, n: Vector3) -> pdf::SolidAngle {
     // ハーフベクトル
-    let wh = (wi + wo).normalize();
+    let wh = (wo + wi).normalize();
     // 確率密度関数
-    let pdf = self.d_ggx(wh, n) * wh.dot(n) / (4.0 * wi.dot(wh) * wi.dot(n));
+    let pdf = self.d_ggx(wh, n) * wh.dot(n) / (4.0 * wo.dot(wh) * wo.dot(n));
     pdf::SolidAngle(pdf)
   }
 }
