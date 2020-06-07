@@ -34,7 +34,7 @@ impl MIS for Area {
 }
 
 fn mis_balance_hulistic(p1: f32, p2: f32) -> f32 {
-  p2 / (p1 + p2)
+  p1 / (p1 + p2)
 }
 
 fn mis_power_hulistic(p1: f32, p2: f32, b: i32) -> f32 {
