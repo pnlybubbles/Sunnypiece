@@ -3,6 +3,7 @@ mod constant;
 mod float;
 mod matrix4;
 mod num;
+pub mod special;
 mod vector;
 mod vector3;
 mod vector4;
