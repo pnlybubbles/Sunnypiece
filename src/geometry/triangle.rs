@@ -1,3 +1,4 @@
+use super::AABB;
 use geometry::{Geometry, Intersection};
 use math::*;
 use ray::Ray;
@@ -9,6 +10,7 @@ pub struct Triangle {
   p2: Vector3,
   normal: Vector3,
   area: f32,
+  aabb: AABB,
 }
 
 impl Triangle {
@@ -19,6 +21,25 @@ impl Triangle {
       p2: p2,
       normal: (p1 - p0).cross(p2 - p0).normalize(),
       area: (p1 - p0).cross(p2 - p0).norm() * 0.5,
+      aabb: Self::aabb(p0, p1, p2),
+    }
+  }
+
+  fn aabb(p0: Vector3, p1: Vector3, p2: Vector3) -> AABB {
+    let min = Vector3::new(
+      p0.x.min(p1.x).min(p2.x),
+      p0.y.min(p1.y).min(p2.y),
+      p0.z.min(p1.z).min(p2.z),
+    );
+    let max = Vector3::new(
+      p0.x.max(p1.x).max(p2.x),
+      p0.y.max(p1.y).max(p2.y),
+      p0.z.max(p1.z).max(p2.z),
+    );
+    AABB {
+      min: min,
+      max: max,
+      center: (max + min) / 2.0,
     }
   }
 }
@@ -73,5 +94,9 @@ impl Geometry for Triangle {
 
   fn pdf(&self) -> pdf::Area {
     return pdf::Area(1.0 / self.area);
+  }
+
+  fn aabb(&self) -> &AABB {
+    &self.aabb
   }
 }

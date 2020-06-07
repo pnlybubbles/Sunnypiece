@@ -1,5 +1,6 @@
 use super::geometry::Geometry;
 use super::intersection::Intersection;
+use super::AABB;
 use math::*;
 use ray::Ray;
 use sample::{pdf, Sample};
@@ -9,6 +10,7 @@ pub struct Sphere {
   position: Vector3,
   radius: f32,
   area: f32,
+  aabb: AABB,
 }
 
 impl Sphere {
@@ -17,6 +19,16 @@ impl Sphere {
       position: position,
       radius: radius,
       area: 4.0 * PI * radius.powi(2),
+      aabb: Self::aabb(position, radius),
+    }
+  }
+
+  fn aabb(position: Vector3, radius: f32) -> AABB {
+    let r = Vector3::fill(radius);
+    AABB {
+      min: position - r,
+      max: position + r,
+      center: position,
     }
   }
 }
@@ -79,5 +91,9 @@ impl Geometry for Sphere {
 
   fn pdf(&self) -> pdf::Area {
     pdf::Area(1.0 / self.area)
+  }
+
+  fn aabb(&self) -> &AABB {
+    &self.aabb
   }
 }
