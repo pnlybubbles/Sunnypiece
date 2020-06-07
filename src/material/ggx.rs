@@ -1,3 +1,4 @@
+use super::physics::*;
 use super::Material;
 use math::*;
 use sample::*;
@@ -16,21 +17,20 @@ impl GGX {
     self.roughness * self.roughness
   }
 
-  fn gaf_smith(&self, wo: Vector3, wi: Vector3, n: Vector3) -> f32 {
-    self.g_ggx(wi, n) * self.g_ggx(wo, n)
+  fn g_ggx(&self, wo: Vector3, wi: Vector3, n: Vector3) -> f32 {
+    self.g1(wi, n) * self.g1(wo, n)
   }
 
-  fn g_ggx(&self, v: Vector3, n: Vector3) -> f32 {
+  fn g1(&self, v: Vector3, n: Vector3) -> f32 {
     let a2 = self.alpha() * self.alpha();
     let cos = v.dot(n);
     let tan = 1.0 / (cos * cos) - 1.0;
-    2.0 / (1.0 + (1.0 + a2 * tan * tan).sqrt())
+    special::chi(cos) * 2.0 / (1.0 + (1.0 + a2 * tan * tan).sqrt())
   }
 
-  fn ndf(&self, m: Vector3, n: Vector3) -> f32 {
+  fn d_ggx(&self, m: Vector3, n: Vector3) -> f32 {
     let a2 = self.alpha() * self.alpha();
-    let mdn = m.dot(n);
-    let x = (a2 - 1.0) * mdn * mdn + 1.0;
+    let x = (a2 - 1.0) * m.dot(n).powi(2) + 1.0;
     a2 / (PI * x * x)
   }
 
@@ -54,15 +54,15 @@ impl Material for GGX {
     }
     debug_assert!(wo.dot(n) > 0.0, "o.n  = {}", wo.dot(n));
     // ハーフベクトル
-    let h = (wi + wo).normalize();
+    let wh = (wi + wo).normalize();
     // Torrance-Sparrow model
-    let f = self.fresnel_schlick(wi, h);
+    let f = self.fresnel_schlick(wi, wh);
     debug_assert!(f >= 0.0 && f <= 1.0 && f.is_finite(), "f: {}", f);
-    let g = self.gaf_smith(wo, wi, n);
+    let g = self.g_ggx(wo, wi, n);
     debug_assert!(g >= 0.0 && g <= 1.0 && g.is_finite(), "g: {}", g);
-    let d = self.ndf(h, n);
+    let d = self.d_ggx(wh, n);
     debug_assert!(d >= 0.0 && d.is_finite(), "d: {}", d);
-    self.reflectance * f * g * d / (4.0 * wi.dot(n) * wo.dot(n))
+    self.reflectance * f * (g * d / (4.0 * wo.dot(n) * wi.dot(n)))
   }
 
   fn sample(&self, wo: Vector3, n: Vector3) -> Sample<Vector3, pdf::SolidAngle> {
@@ -77,28 +77,22 @@ impl Material for GGX {
     let cos = 1.0 / x.sqrt();
     let sin = tan / x.sqrt();
     // ハーフベクトルをサンプリング
-    let h = &basis * Vector3::new(r1.cos() * sin, r1.sin() * sin, cos);
+    let wh = &basis * Vector3::new(r1.cos() * sin, r1.sin() * sin, cos);
     // 入射ベクトル
-    let o_h = wo.dot(h);
-    let in_ = h * (2.0 * o_h) - wo;
-    // ヤコビアン
-    let jacobian = 1.0 / (4.0 * o_h);
+    let wi = wo.reflect(wh);
     // 確率密度関数
-    let pdf = self.ndf(h, n) * h.dot(n) * jacobian;
+    let pdf = self.d_ggx(wh, n) * wh.dot(n) / (4.0 * wi.dot(wh) * wi.dot(n));
     Sample {
-      value: in_,
+      value: wi,
       pdf: pdf::SolidAngle(pdf),
     }
   }
 
   fn pdf(&self, wo: Vector3, wi: Vector3, n: Vector3) -> pdf::SolidAngle {
     // ハーフベクトル
-    let h = ((wi + wo) / 2.0).normalize();
-    let o_h = wo.dot(h);
-    // ヤコビアン
-    let jacobian = 1.0 / (4.0 * o_h);
+    let wh = (wi + wo).normalize();
     // 確率密度関数
-    let pdf = self.ndf(h, n) * h.dot(n) * jacobian;
+    let pdf = self.d_ggx(wh, n) * wh.dot(n) / (4.0 * wi.dot(wh) * wi.dot(n));
     pdf::SolidAngle(pdf)
   }
 }
