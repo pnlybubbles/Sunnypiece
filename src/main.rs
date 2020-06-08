@@ -6,6 +6,7 @@ extern crate rand_core;
 extern crate rand_mt;
 extern crate rayon;
 extern crate time;
+extern crate tobj;
 
 mod acceleration;
 mod camera;
@@ -13,6 +14,7 @@ mod film;
 mod geometry;
 mod integrator;
 mod light_transport;
+mod loader;
 mod material;
 mod math;
 mod object;
