@@ -1,5 +1,7 @@
+mod bvh;
 mod linear;
 
+pub use self::bvh::*;
 pub use self::linear::*;
 use object::Interact;
 use object::{LightSampler, Object};
