@@ -56,3 +56,8 @@ impl Finite for Vector3 {
     self.x.is_infinite() || self.y.is_infinite() || self.z.is_infinite()
   }
 }
+
+// TODO: move
+pub fn unsafe_cmp(a: &f32, b: &f32) -> std::cmp::Ordering {
+  a.partial_cmp(b).unwrap()
+}
