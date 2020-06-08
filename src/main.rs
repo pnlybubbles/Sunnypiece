@@ -52,11 +52,11 @@ fn main() {
 
   // カメラ
   let camera_matrix = Matrix4::look_at(
-    Vector3::new(0.0, 0.0, 35.0),
-    Vector3::new(0.0, 0.0, 0.0),
+    Vector3::new(278.0, 273.0, -800.0),
+    Vector3::new(278.0, 273.0, 0.0),
     Vector3::new(0.0, 1.0, 0.0),
   );
-  let camera = IdealPinhole::new(39.6 * PI / 180.0, film.aspect(), camera_matrix);
+  let camera = IdealPinhole::new(39.3077 * PI / 180.0, film.aspect(), camera_matrix);
 
   // シーン
   let red_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
@@ -79,69 +79,35 @@ fn main() {
     reflectance: Vector3::new(1.0, 1.0, 1.0),
     roughness: 0.3,
   });
-  let room_size = 10.0;
-  let left = Object::new(
-    Box::new(Sphere::new(Vector3::new(-1e4 - room_size, 0.0, 0.0), 1e4)),
-    Matrix4::unit(),
-    &red_diffuse,
-  );
-  let right = Object::new(
-    Box::new(Sphere::new(Vector3::new(1e4 + room_size, 0.0, 0.0), 1e4)),
-    Matrix4::unit(),
-    &blue_diffuse,
-  );
-  let back = Object::new(
-    Box::new(Sphere::new(Vector3::new(0.0, 0.0, -1e4 - room_size), 1e4)),
-    Matrix4::unit(),
-    &white_diffuse,
-  );
-  let bottom = Object::new(
-    Box::new(Sphere::new(Vector3::new(0.0, -1e4 - room_size, 0.0), 1e4)),
-    Matrix4::unit(),
-    &white_diffuse,
-  );
-  let top = Object::new(
-    Box::new(Sphere::new(Vector3::new(0.0, 1e4 + room_size, 0.0), 1e4)),
-    Matrix4::unit(),
-    &white_diffuse,
-  );
-  let sphere1 = Object::new(
-    Box::new(Sphere::new(Vector3::new(-4.0, -room_size + 3.0, 0.0), 3.0)),
-    Matrix4::unit(),
-    &grossy1,
-  );
-  let sphere2 = Object::new(
-    Box::new(Sphere::new(Vector3::new(4.0, -room_size + 3.0, 0.0), 3.0)),
-    Matrix4::unit(),
-    &grossy2,
-  );
-  let ls = 6_f32;
-  let le = 675.0 / ls.powi(2);
+  let ls = 20_f32;
+  let le = 10000.0 / ls.powi(2);
   let light_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
     emittance: Vector3::new(le, le, le),
     albedo: Vector3::zero(),
   });
-  let l0 = Vector3::new(-ls / 2.0, room_size - 0.3, -ls / 2.0);
-  let l1 = l0 + Vector3::new(ls, 0.0, 0.0);
-  let l2 = l0 + Vector3::new(0.0, 0.0, ls);
-  let l3 = l0 + Vector3::new(ls, 0.0, ls);
-  let light1 = Object::new(
-    Box::new(Triangle::new(l0, l1, l2)),
-    Matrix4::unit(),
-    &light_diffuse,
-  );
-  let light2 = Object::new(
-    Box::new(Triangle::new(l2, l1, l3)),
-    Matrix4::unit(),
-    &light_diffuse,
-  );
-  let objects = vec![
-    sphere1, sphere2, top, bottom, left, right, back, light1, light2,
-  ];
-  // let objects = vec![back];
+  // let light_center = Vector3::new(556.0 / 2.0, 548.8 - 20.0, 559.2 / 2.0);
+  // let l0 = light_center + Vector3::new(-ls / 2.0, -0.3, -ls / 2.0);
+  // let l1 = l0 + Vector3::new(ls, 0.0, 0.0);
+  // let l2 = l0 + Vector3::new(0.0, 0.0, ls);
+  // let l3 = l0 + Vector3::new(ls, 0.0, ls);
+  // let light1 = Object::new(
+  //   Box::new(Triangle::new(l0, l1, l2)),
+  //   Matrix4::unit(),
+  //   &light_diffuse,
+  // );
+  // let light2 = Object::new(
+  //   Box::new(Triangle::new(l2, l1, l3)),
+  //   Matrix4::unit(),
+  //   &light_diffuse,
+  // );
+  let mut objects = Vec::new();
+  let cbox = loader::Obj::new(Path::new("models/simple/cbox.obj"));
+  let luminaire = loader::Obj::new(Path::new("models/simple/cbox_luminaire.obj"));
+  objects.append(&mut cbox.instances());
+  objects.append(&mut luminaire.instances());
 
   // 空間構造
-  let structure = acceleration::Linear::new(objects);
+  let structure = acceleration::BVH::new(objects);
 
   // シードの読み込み
   let args: Vec<String> = std::env::args().collect();
