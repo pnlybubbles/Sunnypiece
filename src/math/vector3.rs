@@ -56,6 +56,16 @@ impl From<Vector4> for Vector3 {
   }
 }
 
+impl From<[f32; 3]> for Vector3 {
+  fn from(v: [f32; 3]) -> Vector3 {
+    Vector3 {
+      x: v[0],
+      y: v[1],
+      z: v[2],
+    }
+  }
+}
+
 impl Dot for Vector3 {
   fn dot(self, rhs: Vector3) -> f32 {
     self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
