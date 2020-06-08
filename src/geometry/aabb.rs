@@ -1,6 +1,7 @@
 use math::*;
 use ray::Ray;
 use std::f32;
+use util::*;
 
 #[derive(Clone)]
 pub struct AABB {
@@ -24,8 +25,6 @@ impl AABB {
   }
 
   pub fn merge(list: &Vec<&AABB>) -> AABB {
-    let unsafe_cmp = |a: &f32, b: &f32| -> std::cmp::Ordering { a.partial_cmp(b).unwrap() };
-
     let min = Vector3::new(
       list.iter().map(|v| v.min.x).min_by(&unsafe_cmp).unwrap(),
       list.iter().map(|v| v.min.y).min_by(&unsafe_cmp).unwrap(),
