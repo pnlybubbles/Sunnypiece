@@ -7,6 +7,7 @@ use math::*;
 use ray::Ray;
 use sample::{pdf, Sample};
 use std::cmp::Ordering;
+use util::*;
 
 pub trait Interact {
   fn interact<'a>(&'a self, ray: Ray) -> Option<Interaction>;
@@ -53,6 +54,11 @@ impl<'a> Interaction<'a> {
   ) -> Self {
     let dot_sign = intersection.normal.dot(-ray.direction).signum();
     let orienting_normal = dot_sign * intersection.normal;
+    debug_assert!(
+      intersection.distance.abs() >= EPS,
+      "{}",
+      intersection.distance
+    );
     Interaction {
       intersection: intersection,
       material: material,
@@ -89,6 +95,7 @@ impl<'a> Interaction<'a> {
       origin: x + self.orienting_normal * EPS,
       direction: wo,
     };
+    debug_assert!(wo.is_finite(), "{}", wo);
     structure.interact(ray).and_then(|interaction| {
       // 可視チェック(1)
       Geom::new(self, interaction)
@@ -109,6 +116,7 @@ impl<'a> Interaction<'a> {
       origin: x + self.orienting_normal * EPS,
       direction: path.normalize(),
     };
+    debug_assert!(ray.direction.is_finite(), "{}", ray.direction);
     structure.interact(ray).and_then(|interaction| {
       // 可視チェック(2)
       if !interaction.intersection.distance.approx_eq(path.norm()) {
