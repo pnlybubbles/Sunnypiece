@@ -41,6 +41,11 @@ where
 
     // マテリアルに基づいて方向ベクトルをサンプリング
     let material_sample = point.sample_material();
+    debug_assert!(
+      material_sample.value.is_finite(),
+      "{}",
+      material_sample.value
+    );
     // 衝突点から方向ベクトルを使ってパスを接続
     let material_oriented_contrib =
       match point.connect_direction(self.structure, material_sample.value) {
