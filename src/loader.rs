@@ -30,7 +30,10 @@ impl Obj {
     }
   }
 
-  pub fn instances(&self) -> Vec<Object> {
+  pub fn instances<'a>(
+    &'a self,
+    fallback_material: &'a Box<dyn Material + Send + Sync>,
+  ) -> Vec<Object> {
     let mut instances: Vec<Object> =
       Vec::with_capacity(self.models.iter().map(|m| m.mesh.indices.len() / 3).sum());
     for m in &self.models {
@@ -51,7 +54,7 @@ impl Obj {
           m.mesh
             .material_id
             .map(|id| &self.material_library[id])
-            .expect("ERROR! material is not valid."),
+            .unwrap_or(fallback_material),
         ));
       }
     }

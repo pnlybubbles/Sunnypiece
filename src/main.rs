@@ -67,7 +67,7 @@ fn main() {
     emittance: Vector3::zero(),
     albedo: Vector3::new(0.25, 0.25, 0.75),
   });
-  let white_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
+  let mat: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
     emittance: Vector3::zero(),
     albedo: Vector3::new(0.75, 0.75, 0.75),
   });
@@ -103,8 +103,10 @@ fn main() {
   let mut objects = Vec::new();
   let cbox = loader::Obj::new(Path::new("models/simple/cbox.obj"));
   let luminaire = loader::Obj::new(Path::new("models/simple/cbox_luminaire.obj"));
-  objects.append(&mut cbox.instances());
-  objects.append(&mut luminaire.instances());
+  let bunny = loader::Obj::new(Path::new("models/bunny/cbox_bunny.obj"));
+  objects.append(&mut cbox.instances(&mat));
+  objects.append(&mut luminaire.instances(&mat));
+  objects.append(&mut bunny.instances(&mat));
 
   // 空間構造
   let structure = acceleration::BVH::new(objects);
