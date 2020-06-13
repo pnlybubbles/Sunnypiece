@@ -2,7 +2,7 @@ use super::num::Zero;
 use super::vector::{Cross, Dot, Map};
 use super::vector4::Vector4;
 use std::fmt;
-use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Index, Mul, MulAssign, Neg, Sub, SubAssign};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Vector3 {
@@ -120,11 +120,27 @@ impl Sub for Vector3 {
   }
 }
 
+impl SubAssign for Vector3 {
+  fn sub_assign(&mut self, rhs: Vector3) {
+    self.x -= rhs.x;
+    self.y -= rhs.y;
+    self.z -= rhs.z;
+  }
+}
+
 impl Mul<f32> for Vector3 {
   type Output = Vector3;
 
   fn mul(self, rhs: f32) -> Vector3 {
     Vector3::new(self.x * rhs, self.y * rhs, self.z * rhs)
+  }
+}
+
+impl MulAssign<f32> for Vector3 {
+  fn mul_assign(&mut self, rhs: f32) {
+    self.x *= rhs;
+    self.y *= rhs;
+    self.z *= rhs;
   }
 }
 
