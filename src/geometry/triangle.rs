@@ -54,7 +54,9 @@ impl Geometry for Triangle {
     if det.abs() < EPS {
       return None;
     }
+    debug_assert!(det.is_finite(), "{}", det);
     let invdet = 1.0 / det;
+    debug_assert!(invdet.is_finite(), "{}", invdet);
     let tv = ray.origin - self.p0;
     let u = tv.dot(pv) * invdet;
     if u < 0.0 || u > 1.0 {
@@ -66,10 +68,12 @@ impl Geometry for Triangle {
       return None;
     }
     let t = e2.dot(qv) * invdet;
+    debug_assert!(t.is_finite(), "{}", t);
     if t < EPS {
       return None;
     }
-    let p = ray.origin + ray.direction * t;
+    // Derive position from barycentric coordinates
+    let p = self.p0 + e1 * u + e2 * v;
     Some(Intersection {
       distance: t,
       normal: self.normal,
