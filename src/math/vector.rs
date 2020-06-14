@@ -21,6 +21,10 @@ pub trait Map<T> {
   fn map<F: Fn(T) -> T>(self, F) -> Self;
 }
 
+pub trait Max<T> {
+  fn max(self) -> T;
+}
+
 impl<T> Norm for T
 where
   T: Copy + Dot,
