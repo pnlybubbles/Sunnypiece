@@ -76,22 +76,28 @@ where
       };
 
     // 明示的に光源の座標をサンプリング
-    let light_sample = self.light_sampler.sample();
+    let light_sample = self
+      .light_sampler
+      .sample(point.intersection.position, point.intersection.normal);
     // 衝突点と光源を接続して光源サブパスを生成
-    let light_oriented_contrib = match point.connect_point(self.structure, light_sample.value) {
-      None => Vector3::zero(),
-      Some(geom) => {
-        // 明示的な光源サブパスの重点的サンプリング
-        let li = geom.next.emittance();
-        let light_pdf = light_sample.pdf;
-        debug_assert!(light_pdf.0.is_finite());
-        let bsdf_pdf = geom.bsdf_pdf();
-        debug_assert!(bsdf_pdf.0.is_finite());
-        let mis_weight = light_pdf.power_hulistic(bsdf_pdf, 2);
-        debug_assert!(mis_weight.is_finite());
-        li * geom.bsdf() * geom.weight(light_pdf) * mis_weight
-      }
-    };
+    let light_oriented_contrib = light_sample
+      .map(
+        |sample| match point.connect_point(self.structure, sample.value) {
+          None => Vector3::zero(),
+          Some(geom) => {
+            // 明示的な光源サブパスの重点的サンプリング
+            let li = geom.next.emittance();
+            let light_pdf = sample.pdf;
+            debug_assert!(light_pdf.0.is_finite());
+            let bsdf_pdf = geom.bsdf_pdf();
+            debug_assert!(bsdf_pdf.0.is_finite());
+            let mis_weight = light_pdf.power_hulistic(bsdf_pdf, 2);
+            debug_assert!(mis_weight.is_finite());
+            li * geom.bsdf() * geom.weight(light_pdf) * mis_weight
+          }
+        },
+      )
+      .unwrap_or(Vector3::zero());
 
     le + material_oriented_contrib + light_oriented_contrib
   }

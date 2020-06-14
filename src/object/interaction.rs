@@ -16,7 +16,7 @@ pub trait Interact {
 pub struct Interaction<'a> {
   material: &'a Box<dyn Material + Send + Sync>,
   geometry: &'a Box<dyn Geometry + Send + Sync>,
-  intersection: Intersection,
+  pub intersection: Intersection,
   ray: Ray,
   pub orienting_normal: Vector3,
   is_backface: bool,
@@ -196,7 +196,7 @@ impl<'a> Geom<'a> {
 
   pub fn light_pdf(&self, light_sampler: &LightSampler) -> Option<pdf::Area> {
     if self.next.material.emittance().norm() > 0.0 {
-      Some(light_sampler.pdf(self.next.geometry))
+      light_sampler.pdf(self.next.geometry, self.x, self.n)
     } else {
       None
     }

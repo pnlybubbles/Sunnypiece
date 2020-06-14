@@ -7,7 +7,6 @@ use RNG;
 
 pub struct LightSampler<'a> {
   light: Vec<&'a Object<'a>>,
-  light_area: f32,
 }
 
 impl<'a> LightSampler<'a> {
@@ -17,36 +16,79 @@ impl<'a> LightSampler<'a> {
       .iter()
       .filter(|v| v.material.emittance().sqr_norm() > 0.0)
       .collect::<Vec<_>>();
-    // 光源の表面積を計算
-    let light_area = light.iter().map(|v| v.geometry.area()).sum();
-    LightSampler {
-      light: light,
-      light_area: light_area,
+    LightSampler { light: light }
+  }
+
+  fn pdf_map(&self, x: Vector3, n: Vector3) -> Option<Vec<f32>> {
+    // 光源サンプリングのCDFマップを計算
+    let intensity = self
+      .light
+      .iter()
+      .map(|v| {
+        let path = v.geometry.aabb().center - x;
+        let wi = path.normalize();
+        let wo = -wi;
+        let n2 = v.geometry.normal(x);
+        v.geometry.area()
+          * v.material.emittance().max()
+          * special::chi(wi.dot(n))
+          * special::chi(wo.dot(n2))
+          / path.sqr_norm()
+      })
+      .collect::<Vec<_>>();
+
+    let intensity_sum: f32 = intensity.iter().sum();
+
+    if intensity_sum < EPS {
+      None
+    } else {
+      Some(
+        intensity
+          .iter()
+          .map(|v| v / intensity_sum)
+          .collect::<Vec<_>>(),
+      )
     }
   }
 
-  pub fn sample(&self) -> Sample<Vector3, pdf::Area> {
-    // 面積のみを考慮した光源の重点的サンプリング
-    // NOTE: 位置ベクトルがサンプリングされる
-    RNG.with(|rng| {
-      let r = rng.borrow_mut().gen::<f32>();
-      let roulette = self.light_area * r;
-      let mut area = 0.0;
-      for obj in &self.light {
-        area += obj.geometry.area();
-        if roulette <= area {
-          let sample = obj.geometry.sample();
-          return Sample {
-            value: sample.value,
-            pdf: sample.pdf * (obj.geometry.area() / self.light_area),
-          };
+  /**
+   * 光源の重点的サンプリング
+   *
+   * NOTE: 位置ベクトルがサンプリングされる
+   */
+  pub fn sample(&self, x: Vector3, n: Vector3) -> Option<Sample<Vector3, pdf::Area>> {
+    self.pdf_map(x, n).and_then(|pdf_map| {
+      RNG.with(|rng| {
+        let roulette = rng.borrow_mut().gen::<f32>();
+        let mut accumulator = 0.0;
+        for (i, obj) in self.light.iter().enumerate() {
+          accumulator += pdf_map[i];
+          if roulette <= accumulator {
+            let sample = obj.geometry.sample();
+            return Some(Sample {
+              value: sample.value,
+              pdf: sample.pdf * pdf_map[i],
+            });
+          }
         }
-      }
-      unreachable!();
+        None
+      })
     })
   }
 
-  pub fn pdf(&self, geometry: &Box<dyn Geometry + Send + Sync>) -> pdf::Area {
-    geometry.pdf() * (geometry.area() / self.light_area)
+  pub fn pdf(
+    &self,
+    geometry: &Box<dyn Geometry + Send + Sync>,
+    x: Vector3,
+    n: Vector3,
+  ) -> Option<pdf::Area> {
+    let i = self
+      .light
+      .iter()
+      .position(|v| v.geometry.id() == geometry.id())
+      .expect("ERROR: geometry must be a light source!");
+    self
+      .pdf_map(x, n)
+      .map(|pdf_map| geometry.pdf() * pdf_map[i])
   }
 }
