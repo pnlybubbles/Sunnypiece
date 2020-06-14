@@ -10,4 +10,5 @@ pub trait Geometry {
   fn sample(&self) -> Sample<Vector3, pdf::Area>;
   fn pdf(&self) -> pdf::Area;
   fn aabb(&self) -> &AABB;
+  fn normal(&self, Vector3) -> Vector3;
 }

@@ -96,4 +96,8 @@ impl Geometry for Sphere {
   fn aabb(&self) -> &AABB {
     &self.aabb
   }
+
+  fn normal(&self, x: Vector3) -> Vector3 {
+    (x - self.position).normalize()
+  }
 }

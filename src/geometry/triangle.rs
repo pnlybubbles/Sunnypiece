@@ -103,4 +103,8 @@ impl Geometry for Triangle {
   fn aabb(&self) -> &AABB {
     &self.aabb
   }
+
+  fn normal(&self, _x: Vector3) -> Vector3 {
+    self.normal
+  }
 }
