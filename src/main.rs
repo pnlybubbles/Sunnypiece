@@ -36,8 +36,8 @@ use rand::SeedableRng;
 use std::cell::RefCell;
 use std::path::Path;
 
-const WIDTH: usize = 512;
-const HEIGHT: usize = 512;
+const WIDTH: usize = 800;
+const HEIGHT: usize = 800;
 const SPP: usize = 100;
 type Image = PNG;
 type RNG = rand::rngs::StdRng;
@@ -52,11 +52,17 @@ fn main() {
 
   // カメラ
   let camera_matrix = Matrix4::look_at(
-    Vector3::new(278.0, 273.0, -800.0),
-    Vector3::new(278.0, 273.0, 0.0),
+    Vector3::new(0.0, 2.0, 15.0),
+    Vector3::new(0.0, 1.69522, 14.0476),
     Vector3::new(0.0, 1.0, 0.0),
   );
-  let camera = IdealPinhole::new(39.3077 * PI / 180.0, film.aspect(), camera_matrix);
+  let camera = IdealPinhole::new(36.7774 * PI / 180.0, film.aspect(), camera_matrix);
+  // let camera_matrix = Matrix4::look_at(
+  //   Vector3::new(278.0, 273.0, -800.0),
+  //   Vector3::new(278.0, 273.0, 0.0),
+  //   Vector3::new(0.0, 1.0, 0.0),
+  // );
+  // let camera = IdealPinhole::new(39.3077 * PI / 180.0, film.aspect(), camera_matrix);
 
   // シーン
   let red_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
@@ -73,7 +79,7 @@ fn main() {
   });
   let grossy1: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
     reflectance: Vector3::new(1.0, 1.0, 1.0),
-    roughness: 0.7,
+    roughness: 0.5,
   });
   let grossy2: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
     reflectance: Vector3::new(1.0, 1.0, 1.0),
@@ -101,12 +107,14 @@ fn main() {
   //   &light_diffuse,
   // );
   let mut objects = Vec::new();
-  let cbox = loader::Obj::new(Path::new("models/simple/cbox.obj"));
-  let luminaire = loader::Obj::new(Path::new("models/simple/cbox_luminaire.obj"));
-  let bunny = loader::Obj::new(Path::new("models/bunny/cbox_bunny.obj"));
-  objects.append(&mut cbox.instances(&mat));
-  objects.append(&mut luminaire.instances(&mat));
-  objects.append(&mut bunny.instances(&mat));
+  // let cbox = loader::Obj::new(Path::new("models/simple/cbox.obj"));
+  // let luminaire = loader::Obj::new(Path::new("models/simple/cbox_luminaire.obj"));
+  // let bunny = loader::Obj::new(Path::new("models/bunny/cbox_bunny.obj"));
+  // objects.append(&mut cbox.instances(&mat));
+  // objects.append(&mut luminaire.instances(&mat));
+  // objects.append(&mut bunny.instances(&grossy1));
+  let veach_mis = loader::Obj::new(Path::new("models/veach-mis/veach-mis.obj"));
+  objects.append(&mut veach_mis.instances(&mat));
 
   // 空間構造
   let structure = acceleration::BVH::new(objects);
