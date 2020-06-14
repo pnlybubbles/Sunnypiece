@@ -135,7 +135,7 @@ impl<'a> Mul for &'a Matrix4 {
     for (i, o) in out.v.iter_mut().enumerate() {
       let x = i % 4;
       let y = i / 4;
-      *o = (0..4).map(|j| self.v[y * 4 + j] * rhs.v[i * 4 + x]).sum()
+      *o = (0..4).map(|j| self.v[y * 4 + j] * rhs.v[j * 4 + x]).sum()
     }
     out
   }
