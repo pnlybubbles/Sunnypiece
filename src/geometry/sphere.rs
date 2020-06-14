@@ -1,6 +1,7 @@
 use super::geometry::Geometry;
 use super::intersection::Intersection;
 use super::AABB;
+use super::UUID;
 use math::*;
 use ray::Ray;
 use sample::{pdf, Sample};
@@ -11,15 +12,17 @@ pub struct Sphere {
   radius: f32,
   area: f32,
   aabb: AABB,
+  id: usize,
 }
 
 impl Sphere {
-  pub fn new(position: Vector3, radius: f32) -> Self {
+  pub fn new(position: Vector3, radius: f32, uuid: &mut UUID) -> Self {
     Sphere {
       position: position,
       radius: radius,
       area: 4.0 * PI * radius.powi(2),
       aabb: Self::aabb(position, radius),
+      id: uuid.gen(),
     }
   }
 
@@ -99,5 +102,9 @@ impl Geometry for Sphere {
 
   fn normal(&self, x: Vector3) -> Vector3 {
     (x - self.position).normalize()
+  }
+
+  fn id(&self) -> usize {
+    self.id
   }
 }

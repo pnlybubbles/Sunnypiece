@@ -26,6 +26,7 @@ mod util;
 use camera::{Camera, IdealPinhole};
 use film::Format;
 use film::{Film, Save, Validate, PNG};
+use geometry::UUID;
 use geometry::{Sphere, Triangle};
 use integrator::Integrator;
 use light_transport::Radiance;
@@ -106,6 +107,7 @@ fn main() {
   //   Matrix4::unit(),
   //   &light_diffuse,
   // );
+  let mut uuid = UUID::new();
   let mut objects = Vec::new();
   // let cbox = loader::Obj::new(Path::new("models/simple/cbox.obj"));
   // let luminaire = loader::Obj::new(Path::new("models/simple/cbox_luminaire.obj"));
@@ -114,7 +116,7 @@ fn main() {
   // objects.append(&mut luminaire.instances(&mat));
   // objects.append(&mut bunny.instances(&grossy1));
   let veach_mis = loader::Obj::new(Path::new("models/veach-mis/veach-mis.obj"));
-  objects.append(&mut veach_mis.instances(&mat));
+  objects.append(&mut veach_mis.instances(&mat, &mut uuid));
 
   // 空間構造
   let structure = acceleration::BVH::new(objects);

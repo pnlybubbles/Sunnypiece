@@ -1,4 +1,5 @@
 use geometry::Triangle;
+use geometry::UUID;
 use material;
 use material::Material;
 use math::*;
@@ -62,6 +63,7 @@ impl Obj {
   pub fn instances<'a>(
     &'a self,
     fallback_material: &'a Box<dyn Material + Send + Sync>,
+    uuid: &mut UUID,
   ) -> Vec<Object> {
     let mut instances: Vec<Object> =
       Vec::with_capacity(self.models.iter().map(|m| m.mesh.indices.len() / 3).sum());
@@ -78,7 +80,7 @@ impl Obj {
           polygon[i] = potition;
         }
         instances.push(Object::new(
-          Box::new(Triangle::new(polygon[0], polygon[1], polygon[2])),
+          Box::new(Triangle::new(polygon[0], polygon[1], polygon[2], uuid)),
           Matrix4::unit(),
           m.mesh
             .material_id

@@ -1,4 +1,5 @@
 use super::AABB;
+use super::UUID;
 use geometry::{Geometry, Intersection};
 use math::*;
 use ray::Ray;
@@ -11,10 +12,11 @@ pub struct Triangle {
   normal: Vector3,
   area: f32,
   aabb: AABB,
+  id: usize,
 }
 
 impl Triangle {
-  pub fn new(p0: Vector3, p1: Vector3, p2: Vector3) -> Self {
+  pub fn new(p0: Vector3, p1: Vector3, p2: Vector3, uuid: &mut UUID) -> Self {
     Triangle {
       p0: p0,
       p1: p1,
@@ -22,6 +24,7 @@ impl Triangle {
       normal: (p1 - p0).cross(p2 - p0).normalize(),
       area: (p1 - p0).cross(p2 - p0).norm() * 0.5,
       aabb: Self::aabb(p0, p1, p2),
+      id: uuid.gen(),
     }
   }
 
@@ -106,5 +109,9 @@ impl Geometry for Triangle {
 
   fn normal(&self, _x: Vector3) -> Vector3 {
     self.normal
+  }
+
+  fn id(&self) -> usize {
+    self.id
   }
 }
