@@ -14,6 +14,11 @@ pub struct IdealPinhole {
 }
 
 impl IdealPinhole {
+  /**
+   * 理想的なピンホールカメラ
+   *
+   * 開口部はz負方向を向いている
+   */
   pub fn new(
     xfov: Rad,
     // width / height
