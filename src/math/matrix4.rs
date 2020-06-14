@@ -58,14 +58,14 @@ impl Matrix4 {
     ])
   }
 
+  /**
+   * z負方向がtargetを向くような基底を生成する
+   */
   pub fn look_at(origin: Vector3, target: Vector3, up: Vector3) -> Matrix4 {
-    let za = (origin - target).normalize();
+    let za = -(target - origin).normalize();
     let xa = up.cross(za).normalize();
     let ya = za.cross(xa);
-    Matrix4::new([
-      xa.x, xa.y, xa.z, origin.x, ya.x, ya.y, ya.z, origin.y, za.x, za.y, za.z, origin.z, 0.0, 0.0,
-      0.0, 1.0,
-    ])
+    &Matrix4::translate(origin) * &[xa, ya, za].into()
   }
 
   pub fn map_col<F>(&self, f: F) -> Vector4
