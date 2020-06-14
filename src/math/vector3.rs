@@ -56,8 +56,8 @@ impl From<Vector4> for Vector3 {
   }
 }
 
-impl From<[f32; 3]> for Vector3 {
-  fn from(v: [f32; 3]) -> Vector3 {
+impl From<&[f32]> for Vector3 {
+  fn from(v: &[f32]) -> Vector3 {
     Vector3 {
       x: v[0],
       y: v[1],

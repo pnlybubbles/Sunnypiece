@@ -17,16 +17,45 @@ impl Obj {
     let material_library = materials
       .iter()
       .map(|v| {
-        Box::new(material::Lambertian {
-          emittance: v.ambient.into(),
-          albedo: v.diffuse.into(),
-        }) as Box<dyn Material + Sync + Send>
+        let emittance = v
+          .unknown_param
+          .get("Ke")
+          .and_then(|s| Obj::parse_vector(s))
+          .unwrap_or(Vector3::zero());
+        let roughness = v.unknown_param.get("Pr").and_then(|s| Obj::parse_float(s));
+        let albedo = v.diffuse[..].into();
+        match roughness {
+          Some(r) => Box::new(material::GGX {
+            roughness: r,
+            reflectance: albedo,
+          }) as Box<dyn Material + Sync + Send>,
+          None => Box::new(material::Lambertian {
+            emittance: emittance,
+            albedo: albedo,
+          }),
+        }
       })
       .collect::<Vec<_>>();
     Obj {
       models: models,
       materials: materials,
       material_library: material_library,
+    }
+  }
+
+  fn parse_float(input: &String) -> Option<f32> {
+    input.trim().parse::<f32>().ok()
+  }
+
+  fn parse_vector(input: &String) -> Option<Vector3> {
+    let parsed = input
+      .split_ascii_whitespace()
+      .flat_map(|v| v.trim().parse::<f32>())
+      .collect::<Vec<_>>();
+    if parsed.len() >= 3 {
+      Some(parsed[..].into())
+    } else {
+      None
     }
   }
 
