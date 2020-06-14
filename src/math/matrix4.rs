@@ -2,6 +2,7 @@ use super::num::Zero;
 use super::vector::*;
 use super::vector3::Vector3;
 use super::vector4::Vector4;
+use std::fmt;
 use std::ops::{Add, Mul, Neg, Sub};
 
 #[derive(Debug, Clone)]
@@ -157,5 +158,30 @@ impl From<[Vector3; 3]> for Matrix4 {
       v[0].x, v[1].x, v[2].x, 0.0, v[0].y, v[1].y, v[2].y, 0.0, v[0].z, v[1].z, v[2].z, 0.0, 0.0,
       0.0, 0.0, 0.0,
     ])
+  }
+}
+
+impl fmt::Display for Matrix4 {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(
+      f,
+      "/ {:>12} {:>12} {:>12} {:>12} \\\n| {:>12} {:>12} {:>12} {:>12} |\n| {:>12} {:>12} {:>12} {:>12} |\n\\ {:>12} {:>12} {:>12} {:>12} /",
+      self.v[0],
+      self.v[1],
+      self.v[2],
+      self.v[3],
+      self.v[4],
+      self.v[5],
+      self.v[6],
+      self.v[7],
+      self.v[8],
+      self.v[9],
+      self.v[10],
+      self.v[11],
+      self.v[12],
+      self.v[13],
+      self.v[14],
+      self.v[15]
+    )
   }
 }
