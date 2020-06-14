@@ -84,6 +84,16 @@ impl Matrix4 {
     }
     out.into()
   }
+
+  pub fn transpose(&self) -> Matrix4 {
+    let mut out = Matrix4::zero();
+    for (i, o) in out.v.iter_mut().enumerate() {
+      let x = i % 4;
+      let y = i / 4;
+      *o = self.v[x * 4 + y]
+    }
+    out
+  }
 }
 
 impl Zero for Matrix4 {
