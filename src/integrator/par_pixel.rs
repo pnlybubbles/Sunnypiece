@@ -1,5 +1,5 @@
 use super::integrator::Integrator;
-use super::util;
+use super::util::ProgressIndicator;
 use film::Film;
 use rayon::prelude::*;
 use std::ops::{Add, Div};
@@ -28,7 +28,8 @@ impl<'a, Pixel> Integrator<Pixel> for ParPixel<'a, Pixel> {
     let spp = self.spp;
     let uv = self.film.uv();
     let total = self.film.height * self.film.width;
-    let progress = Mutex::new(0);
+    let progress = Mutex::new(ProgressIndicator::new(total));
+
     self
       .film
       .data
@@ -36,9 +37,7 @@ impl<'a, Pixel> Integrator<Pixel> for ParPixel<'a, Pixel> {
       .enumerate()
       .for_each(|(index, pixel)| {
         {
-          let mut p = progress.lock().unwrap();
-          *p += 1;
-          util::progress_indicator(*p, total);
+          progress.lock().unwrap().next();
         }
         // heavy task
         *pixel = (0..spp).fold(pixel.clone(), |sum, _| {
@@ -46,6 +45,7 @@ impl<'a, Pixel> Integrator<Pixel> for ParPixel<'a, Pixel> {
           sum + f(u, v)
         }) / spp as f32
       });
-    println!("");
+
+    progress.lock().unwrap().end();
   }
 }

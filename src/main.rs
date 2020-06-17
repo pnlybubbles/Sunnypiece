@@ -37,9 +37,9 @@ use rand::SeedableRng;
 use std::cell::RefCell;
 use std::path::Path;
 
-const WIDTH: usize = 800;
-const HEIGHT: usize = 800;
-const SPP: usize = 100;
+const WIDTH: usize = 256;
+const HEIGHT: usize = 256;
+const SPP: usize = 10;
 type Image = PNG;
 type RNG = rand::rngs::StdRng;
 
@@ -131,7 +131,7 @@ fn main() {
   };
 
   // 積分器
-  let mut integrator = integrator::ParPixel::new(&mut film, SPP);
+  let mut integrator = integrator::Debug::new(&mut film, SPP, seed);
   // 光輸送
   let light_transporter = light_transport::ExplicitLight::new(&structure);
 

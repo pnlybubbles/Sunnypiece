@@ -7,6 +7,7 @@ use RNG;
 
 pub struct LightSampler<'a> {
   light: Vec<&'a Object<'a>>,
+  intensity: Vec<f32>,
 }
 
 impl<'a> LightSampler<'a> {
@@ -16,36 +17,49 @@ impl<'a> LightSampler<'a> {
       .iter()
       .filter(|v| v.material.emittance().sqr_norm() > 0.0)
       .collect::<Vec<_>>();
-    LightSampler { light: light }
+    let intensity = light
+      .iter()
+      .map(|v| v.geometry.area() * v.material.emittance().max())
+      .collect::<Vec<_>>();
+    LightSampler {
+      light: light,
+      intensity,
+    }
   }
 
   fn pdf_map(&self, x: Vector3, n: Vector3) -> Option<Vec<f32>> {
-    // 光源サンプリングのCDFマップを計算
-    let intensity = self
+    // 光源サンプリングのPDFマップを計算
+    let pdf_map = self
       .light
       .iter()
-      .map(|v| {
+      .enumerate()
+      .map(|(i, v)| {
         let path = v.geometry.aabb().center - x;
-        let wi = path.normalize();
+        let path_sqr_norm = path.sqr_norm();
+        let wi = path / path_sqr_norm.sqrt();
+        let wi_n = wi.dot(n);
+        if wi_n < 0.0 {
+          return 0.0;
+        }
         let wo = -wi;
         let n2 = v.geometry.normal(x);
-        v.geometry.area()
-          * v.material.emittance().max()
-          * special::chi(wi.dot(n))
-          * special::chi(wo.dot(n2))
-          / path.sqr_norm()
+        let wo_n2 = wo.dot(n2);
+        if wo_n2 < 0.0 {
+          return 0.0;
+        }
+        self.intensity[i] * wi_n * wo_n2 / path_sqr_norm
       })
       .collect::<Vec<_>>();
 
-    let intensity_sum: f32 = intensity.iter().sum();
+    let normalize_factor: f32 = pdf_map.iter().sum();
 
-    if intensity_sum < EPS {
+    if normalize_factor < EPS {
       None
     } else {
       Some(
-        intensity
+        pdf_map
           .iter()
-          .map(|v| v / intensity_sum)
+          .map(|v| v / normalize_factor)
           .collect::<Vec<_>>(),
       )
     }

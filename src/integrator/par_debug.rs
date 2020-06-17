@@ -1,5 +1,5 @@
 use super::integrator::Integrator;
-use super::util;
+use super::util::ProgressIndicator;
 use film::Film;
 use rand::{Rng, SeedableRng};
 use rayon::prelude::*;
@@ -33,7 +33,7 @@ impl<'a, Pixel> Integrator<Pixel> for ParDebug<'a, Pixel> {
     let spp = self.spp;
     let uv = self.film.uv();
     let total = self.film.height * self.film.width / chunk_size;
-    let progress = Mutex::new(0);
+    let progress = Mutex::new(ProgressIndicator::new(total));
 
     println!("Using seed: {}", self.seed);
     println!("Resolution: {} x {}", self.film.width, self.film.height);
@@ -51,9 +51,7 @@ impl<'a, Pixel> Integrator<Pixel> for ParDebug<'a, Pixel> {
       .enumerate()
       .for_each(|(index, slice)| {
         {
-          let mut p = progress.lock().unwrap();
-          *p += 1;
-          util::progress_indicator(*p, total);
+          progress.lock().unwrap().next();
         }
 
         // initialize thread local rng
@@ -67,6 +65,7 @@ impl<'a, Pixel> Integrator<Pixel> for ParDebug<'a, Pixel> {
           }) / spp as f32
         })
       });
-    println!("");
+
+    progress.lock().unwrap().end();
   }
 }

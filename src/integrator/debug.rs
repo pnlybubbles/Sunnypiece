@@ -1,5 +1,5 @@
 use super::integrator::Integrator;
-use super::util;
+use super::util::ProgressIndicator;
 use film::Film;
 use rand::{Rng, SeedableRng};
 use std::ops::{Add, Div};
@@ -31,6 +31,7 @@ impl<'a, Pixel> Integrator<Pixel> for Debug<'a, Pixel> {
     let spp = self.spp;
     let uv = self.film.uv();
     let total = self.film.height * self.film.width;
+    let mut progress = ProgressIndicator::new(total);
 
     println!("Using seed: {}", self.seed);
 
@@ -45,7 +46,7 @@ impl<'a, Pixel> Integrator<Pixel> for Debug<'a, Pixel> {
       .iter_mut()
       .enumerate()
       .for_each(|(index, pixel)| {
-        util::progress_indicator(index, total);
+        progress.next();
 
         if index % chunk_size == 0 {
           RNG.with(|rng| *rng.borrow_mut() = RNG::seed_from_u64(thread_seed[index / chunk_size]));
@@ -55,6 +56,8 @@ impl<'a, Pixel> Integrator<Pixel> for Debug<'a, Pixel> {
           let (u, v) = uv(index);
           sum + f(u, v)
         }) / spp as f32
-      })
+      });
+
+    progress.end();
   }
 }
