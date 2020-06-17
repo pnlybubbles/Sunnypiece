@@ -16,3 +16,6 @@ tobj = "2.0.2"
 opt-level = 3
 debug = false
 overflow-checks = false
+
+[profile.release]
+debug = true
