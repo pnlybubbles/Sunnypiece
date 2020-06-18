@@ -36,18 +36,17 @@ impl<'a> LightSampler<'a> {
       .map(|(i, v)| {
         let path = v.geometry.aabb().center - x;
         let path_sqr_norm = path.sqr_norm();
-        let wi = path / path_sqr_norm.sqrt();
-        let wi_n = wi.dot(n);
-        if wi_n < 0.0 {
+        let wo = path / path_sqr_norm.sqrt();
+        let wo_n = wo.dot(n);
+        if wo_n < 0.0 {
           return 0.0;
         }
-        let wo = -wi;
         let n2 = v.geometry.normal(x);
-        let wo_n2 = wo.dot(n2);
+        let wo_n2 = (-wo).dot(n2);
         if wo_n2 < 0.0 {
           return 0.0;
         }
-        self.intensity[i] * wi_n * wo_n2 / path_sqr_norm
+        self.intensity[i] * wo_n * wo_n2 / path_sqr_norm
       })
       .collect::<Vec<_>>();
 
