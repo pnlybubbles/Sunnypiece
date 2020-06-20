@@ -1,5 +1,6 @@
 use super::film::Format;
 use super::film::{Film, Save};
+use super::tonemap::Tonemap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
@@ -12,7 +13,11 @@ where
 {
   type Output = [u8; 3];
 
-  fn save(film: &Film<T>, path: &Path, f: impl Fn(&T) -> Self::Output) {
+  fn save<M>(film: &Film<T>, path: &Path, tonemap: M)
+  where
+    M: Tonemap<Input = T, Output = Self::Output>,
+  {
+    let f = tonemap.mapper(film);
     let mut file = File::create(path).expect("ERROR! could not open file.");
     file
       .write_all(format!("P3\n{} {}\n{}\n", film.width, film.height, 255).as_bytes())

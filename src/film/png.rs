@@ -1,5 +1,6 @@
 use super::film::Format;
 use super::film::{Film, Save};
+use super::tonemap::Tonemap;
 use std::fs::File;
 use std::path::Path;
 
@@ -11,7 +12,11 @@ where
 {
   type Output = [u8; 3];
 
-  fn save(film: &Film<T>, path: &Path, f: impl Fn(&T) -> Self::Output) {
+  fn save<M>(film: &Film<T>, path: &Path, tonemap: M)
+  where
+    M: Tonemap<Input = T, Output = Self::Output>,
+  {
+    let f = tonemap.mapper(film);
     let mut buf = image::ImageBuffer::new(film.width as u32, film.height as u32);
     for (x, y, pixel) in buf.enumerate_pixels_mut() {
       let output_pixel = film.get(x as usize, y as usize);

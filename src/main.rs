@@ -5,6 +5,7 @@ extern crate rand;
 extern crate rand_core;
 extern crate rand_mt;
 extern crate rayon;
+extern crate scarlet;
 extern crate time;
 extern crate tobj;
 
@@ -24,10 +25,8 @@ mod sampler;
 mod util;
 
 use camera::{Camera, IdealPinhole};
-use film::Format;
-use film::{Film, Save, Validate, PNG};
-use geometry::UUID;
-use geometry::{Sphere, Triangle};
+use film::{tonemap, Film, Format, Save, Validate, PNG};
+use geometry::{Sphere, Triangle, UUID};
 use integrator::Integrator;
 use light_transport::Radiance;
 use material::Material;
@@ -37,8 +36,8 @@ use rand::SeedableRng;
 use std::cell::RefCell;
 use std::path::Path;
 
-const WIDTH: usize = 256;
-const HEIGHT: usize = 256;
+const WIDTH: usize = 800;
+const HEIGHT: usize = 800;
 const SPP: usize = 10;
 type Image = PNG;
 type RNG = rand::rngs::StdRng;
@@ -131,7 +130,7 @@ fn main() {
   };
 
   // 積分器
-  let mut integrator = integrator::Debug::new(&mut film, SPP, seed);
+  let mut integrator = integrator::ParPixel::new(&mut film, SPP);
   // 光輸送
   let light_transporter = light_transport::ExplicitLight::new(&structure);
 
@@ -150,10 +149,9 @@ fn main() {
     SPP,
     Image::ext(),
   );
-  Image::save(&film, Path::new(&file_path), |v| {
-    // ガンマ補正
-    let gamma = 2.2;
-    let correct = v.map(|v| v.min(1.0).max(0.0).powf(1.0 / gamma) * 255.0);
-    [correct.x as u8, correct.y as u8, correct.z as u8]
-  })
+  let tonemap = tonemap::Debug {
+    colormap: scarlet::colormap::ListedColorMap::viridis(),
+    clamp: (0.0, 0.02),
+  };
+  Image::save(&film, Path::new(&file_path), tonemap)
 }

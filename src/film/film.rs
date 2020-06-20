@@ -1,3 +1,4 @@
+use super::tonemap::Tonemap;
 use math::Vector3;
 use rand::Rng;
 use std::path::Path;
@@ -76,7 +77,9 @@ impl Validate for Film<Vector3> {
 pub trait Save<T>: Format {
   type Output;
 
-  fn save(&Film<T>, &Path, impl Fn(&T) -> Self::Output);
+  fn save<M>(&Film<T>, path: &Path, tonemap: M)
+  where
+    M: Tonemap<Input = T, Output = Self::Output>;
 }
 
 pub trait Format {
