@@ -63,7 +63,9 @@ where
           Some(geom) => {
             // 明示的な光源サブパスの重点的サンプリング
             let li = geom.next.emittance();
-            let light_pdf = sample.pdf;
+            let light_pdf = sample
+              .pdf
+              .solid_angle_measure(geom.x_offset, geom.x2, geom.n2);
             li * geom.bsdf() * geom.weight(light_pdf)
           }
         },

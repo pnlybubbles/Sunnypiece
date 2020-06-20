@@ -59,7 +59,8 @@ where
           debug_assert!(bsdf_pdf.0.is_finite());
           let light_contrib = light_pdf
             .map(|pdf| {
-              let mis_weight = bsdf_pdf.power_hulistic(pdf, 2);
+              let mis_weight = bsdf_pdf
+                .power_hulistic(pdf.solid_angle_measure(geom.x_offset, geom.x2, geom.n2), 2);
               debug_assert!(mis_weight.is_finite());
               debug_assert!(geom.bsdf().is_finite());
               debug_assert!(geom.weight(bsdf_pdf).is_finite());
@@ -87,7 +88,9 @@ where
           Some(geom) => {
             // 明示的な光源サブパスの重点的サンプリング
             let li = geom.next.emittance();
-            let light_pdf = sample.pdf;
+            let light_pdf = sample
+              .pdf
+              .solid_angle_measure(geom.x_offset, geom.x2, geom.n2);
             debug_assert!(light_pdf.0.is_finite());
             let bsdf_pdf = geom.bsdf_pdf();
             debug_assert!(bsdf_pdf.0.is_finite());

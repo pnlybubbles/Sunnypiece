@@ -182,12 +182,8 @@ impl<'a> Geom<'a> {
     self.current.material.brdf(self.wi, self.wo, self.n, self.x)
   }
 
-  pub fn bsdf_pdf(&self) -> pdf::Area {
-    self
-      .current
-      .material
-      .pdf(self.wi, self.wo, self.n)
-      .area_measure(self.x_offset, self.x2, self.n2)
+  pub fn bsdf_pdf(&self) -> pdf::SolidAngle {
+    self.current.material.pdf(self.wi, self.wo, self.n)
   }
 
   pub fn g(&self) -> f32 {

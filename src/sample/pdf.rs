@@ -46,3 +46,12 @@ impl SolidAngle {
     Area(pdf * (-wo).dot(n2) / path.sqr_norm())
   }
 }
+
+impl Area {
+  pub fn solid_angle_measure(self, x: Vector3, x2: Vector3, n2: Vector3) -> SolidAngle {
+    let Area(pdf) = self;
+    let path = x2 - x;
+    let wo = path.normalize();
+    SolidAngle(pdf * path.sqr_norm() / (-wo).dot(n2))
+  }
+}
