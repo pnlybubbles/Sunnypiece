@@ -12,4 +12,5 @@ pub trait Geometry {
   fn aabb(&self) -> &AABB;
   fn normal(&self, Vector3) -> Vector3;
   fn id(&self) -> usize;
+  fn bounding_sphere(&self) -> (Vector3, f32);
 }

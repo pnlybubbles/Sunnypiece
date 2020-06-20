@@ -13,6 +13,7 @@ pub struct Triangle {
   area: f32,
   aabb: AABB,
   id: usize,
+  bounding_sphere: (Vector3, f32),
 }
 
 impl Triangle {
@@ -25,6 +26,7 @@ impl Triangle {
       area: (p1 - p0).cross(p2 - p0).norm() * 0.5,
       aabb: Self::aabb(p0, p1, p2),
       id: uuid.gen(),
+      bounding_sphere: Self::bounding_sphere(p0, p1, p2),
     }
   }
 
@@ -43,6 +45,43 @@ impl Triangle {
       min: min,
       max: max,
       center: (max + min) / 2.0,
+    }
+  }
+
+  fn bounding_sphere(p0: Vector3, p1: Vector3, p2: Vector3) -> (Vector3, f32) {
+    let mut a_ = (p0 - p1).norm();
+    let mut b_ = (p1 - p2).norm();
+    let mut c_ = (p2 - p0).norm();
+
+    // Re-orient triangle (make A longest side)
+    let mut a = p2;
+    let mut b = p0;
+    let mut c = p1;
+
+    if b_ < c_ {
+      std::mem::swap(&mut b_, &mut c_);
+      std::mem::swap(&mut b, &mut c);
+    }
+    if a_ < b_ {
+      std::mem::swap(&mut a_, &mut b_);
+      std::mem::swap(&mut a, &mut b);
+    }
+
+    // If obtuse, just use longest diameter, otherwise circumscribe
+    if (b_ * b_) + (c_ * c_) <= (a_ * a_) {
+      let position = (b + c) / 2.0;
+      let radius = a_ / 2.0;
+      (position, radius)
+    } else {
+      // http://en.wikipedia.org/wiki/Circumscribed_circle
+      let cos_a = (b_ * b_ + c_ * c_ - a_ * a_) / (b_ * c_ * 2.0);
+      let alpha = a - c;
+      let beta = b - c;
+      let position = (beta * alpha.dot(alpha) - alpha * beta.dot(beta)).cross(alpha.cross(beta))
+        / (alpha.cross(beta).dot(alpha.cross(beta)) * 2.0)
+        + c;
+      let radius = a_ / ((1.0 - cos_a * cos_a).sqrt() * 2.0);
+      (position, radius)
     }
   }
 }
@@ -113,5 +152,9 @@ impl Geometry for Triangle {
 
   fn id(&self) -> usize {
     self.id
+  }
+
+  fn bounding_sphere(&self) -> (Vector3, f32) {
+    self.bounding_sphere
   }
 }

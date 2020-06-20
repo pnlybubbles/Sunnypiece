@@ -107,4 +107,8 @@ impl Geometry for Sphere {
   fn id(&self) -> usize {
     self.id
   }
+
+  fn bounding_sphere(&self) -> (Vector3, f32) {
+    (self.position, self.radius)
+  }
 }
