@@ -38,7 +38,7 @@ use std::path::Path;
 
 const WIDTH: usize = 800;
 const HEIGHT: usize = 800;
-const SPP: usize = 10;
+const SPP: usize = 100;
 type Image = PNG;
 type RNG = rand::rngs::StdRng;
 
@@ -149,9 +149,10 @@ fn main() {
     SPP,
     Image::ext(),
   );
-  let tonemap = tonemap::Debug {
-    colormap: scarlet::colormap::ListedColorMap::viridis(),
-    clamp: (0.0, 0.02),
-  };
+  // let tonemap = tonemap::Debug {
+  //   colormap: scarlet::colormap::ListedColorMap::viridis(),
+  //   clamp: (0.0, 1.0),
+  // };
+  let tonemap = tonemap::Gamma::default();
   Image::save(&film, Path::new(&file_path), tonemap)
 }

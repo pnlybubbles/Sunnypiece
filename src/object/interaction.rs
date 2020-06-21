@@ -194,8 +194,8 @@ impl<'a> Geom<'a> {
   }
 
   pub fn light_pdf(&self, light_sampler: &LightSampler) -> Option<pdf::Area> {
-    if self.next.material.emittance().norm() > 0.0 {
-      light_sampler.pdf(self.next.geometry, self.x, self.n)
+    if self.next.material.emittance().sqr_norm() > 0.0 {
+      light_sampler.pdf(self.next.geometry)
     } else {
       None
     }

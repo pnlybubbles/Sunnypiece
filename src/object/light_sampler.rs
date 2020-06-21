@@ -7,7 +7,7 @@ use RNG;
 
 pub struct LightSampler<'a> {
   light: Vec<&'a Object<'a>>,
-  intensity: Vec<f32>,
+  pdf: Vec<f32>,
 }
 
 impl<'a> LightSampler<'a> {
@@ -21,47 +21,12 @@ impl<'a> LightSampler<'a> {
       .iter()
       .map(|v| v.geometry.area() * v.material.emittance().max())
       .collect::<Vec<_>>();
-    LightSampler {
-      light: light,
-      intensity,
-    }
-  }
-
-  fn pdf_map(&self, x: Vector3, n: Vector3) -> Option<Vec<f32>> {
-    // 光源サンプリングのPDFマップを計算
-    let pdf_map = self
-      .light
+    let normalize_factor: f32 = intensity.iter().sum();
+    let pdf = intensity
       .iter()
-      .enumerate()
-      .map(|(i, v)| {
-        let path = v.geometry.aabb().center - x;
-        let path_sqr_norm = path.sqr_norm();
-        let wo = path / path_sqr_norm.sqrt();
-        let wo_n = wo.dot(n);
-        if wo_n < 0.0 {
-          return 0.0;
-        }
-        let n2 = v.geometry.normal(x);
-        let wo_n2 = (-wo).dot(n2);
-        if wo_n2 < 0.0 {
-          return 0.0;
-        }
-        self.intensity[i] * (wo_n * wo_n2).max(0.2) / path_sqr_norm
-      })
+      .map(|v| v / normalize_factor)
       .collect::<Vec<_>>();
-
-    let normalize_factor: f32 = pdf_map.iter().sum();
-
-    if normalize_factor < EPS {
-      None
-    } else {
-      Some(
-        pdf_map
-          .iter()
-          .map(|v| v / normalize_factor)
-          .collect::<Vec<_>>(),
-      )
-    }
+    LightSampler { light, pdf }
   }
 
   /**
@@ -69,39 +34,29 @@ impl<'a> LightSampler<'a> {
    *
    * NOTE: 位置ベクトルがサンプリングされる
    */
-  pub fn sample(&self, x: Vector3, n: Vector3) -> Option<Sample<Vector3, pdf::Area>> {
-    self.pdf_map(x, n).and_then(|pdf_map| {
-      RNG.with(|rng| {
-        let roulette = rng.borrow_mut().gen::<f32>();
-        let mut accumulator = 0.0;
-        for (i, obj) in self.light.iter().enumerate() {
-          accumulator += pdf_map[i];
-          if roulette <= accumulator {
-            let sample = obj.geometry.sample();
-            return Some(Sample {
-              value: sample.value,
-              pdf: sample.pdf * pdf_map[i],
-            });
-          }
+  pub fn sample(&self) -> Option<Sample<Vector3, pdf::Area>> {
+    RNG.with(|rng| {
+      let roulette = rng.borrow_mut().gen::<f32>();
+      let mut accumulator = 0.0;
+      for (i, obj) in self.light.iter().enumerate() {
+        accumulator += self.pdf[i];
+        if roulette <= accumulator {
+          let sample = obj.geometry.sample();
+          return Some(Sample {
+            value: sample.value,
+            pdf: sample.pdf * self.pdf[i],
+          });
         }
-        None
-      })
+      }
+      None
     })
   }
 
-  pub fn pdf(
-    &self,
-    geometry: &Box<dyn Geometry + Send + Sync>,
-    x: Vector3,
-    n: Vector3,
-  ) -> Option<pdf::Area> {
-    let i = self
+  pub fn pdf(&self, geometry: &Box<dyn Geometry + Send + Sync>) -> Option<pdf::Area> {
+    self
       .light
       .iter()
       .position(|v| v.geometry.id() == geometry.id())
-      .expect("ERROR: geometry must be a light source!");
-    self
-      .pdf_map(x, n)
-      .map(|pdf_map| geometry.pdf() * pdf_map[i])
+      .map(|i| geometry.pdf() * self.pdf[i])
   }
 }

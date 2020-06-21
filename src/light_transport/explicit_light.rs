@@ -77,9 +77,7 @@ where
       };
 
     // 明示的に光源の座標をサンプリング
-    let light_sample = self
-      .light_sampler
-      .sample(point.intersection.position, point.intersection.normal);
+    let light_sample = self.light_sampler.sample();
     // 衝突点と光源を接続して光源サブパスを生成
     let light_oriented_contrib = light_sample
       .map(
