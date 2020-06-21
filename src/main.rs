@@ -26,12 +26,11 @@ mod util;
 
 use camera::{Camera, IdealPinhole};
 use film::{tonemap, Film, Format, Save, Validate, PNG};
-use geometry::{Sphere, Triangle, UUID};
+use geometry::UUID;
 use integrator::Integrator;
 use light_transport::Radiance;
 use material::Material;
 use math::*;
-use object::Object;
 use rand::SeedableRng;
 use std::cell::RefCell;
 use std::path::Path;
@@ -65,47 +64,10 @@ fn main() {
   // let camera = IdealPinhole::new(39.3077 * PI / 180.0, film.aspect(), camera_matrix);
 
   // シーン
-  let red_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
-    emittance: Vector3::zero(),
-    albedo: Vector3::new(0.75, 0.25, 0.25),
-  });
-  let blue_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
-    emittance: Vector3::zero(),
-    albedo: Vector3::new(0.25, 0.25, 0.75),
-  });
   let mat: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
     emittance: Vector3::zero(),
     albedo: Vector3::new(0.75, 0.75, 0.75),
   });
-  let grossy1: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
-    reflectance: Vector3::new(1.0, 1.0, 1.0),
-    roughness: 0.5,
-  });
-  let grossy2: Box<dyn Material + Send + Sync> = Box::new(material::GGX {
-    reflectance: Vector3::new(1.0, 1.0, 1.0),
-    roughness: 0.3,
-  });
-  let ls = 20_f32;
-  let le = 10000.0 / ls.powi(2);
-  let light_diffuse: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
-    emittance: Vector3::new(le, le, le),
-    albedo: Vector3::zero(),
-  });
-  // let light_center = Vector3::new(556.0 / 2.0, 548.8 - 20.0, 559.2 / 2.0);
-  // let l0 = light_center + Vector3::new(-ls / 2.0, -0.3, -ls / 2.0);
-  // let l1 = l0 + Vector3::new(ls, 0.0, 0.0);
-  // let l2 = l0 + Vector3::new(0.0, 0.0, ls);
-  // let l3 = l0 + Vector3::new(ls, 0.0, ls);
-  // let light1 = Object::new(
-  //   Box::new(Triangle::new(l0, l1, l2)),
-  //   Matrix4::unit(),
-  //   &light_diffuse,
-  // );
-  // let light2 = Object::new(
-  //   Box::new(Triangle::new(l2, l1, l3)),
-  //   Matrix4::unit(),
-  //   &light_diffuse,
-  // );
   let mut uuid = UUID::new();
   let mut objects = Vec::new();
   // let cbox = loader::Obj::new(Path::new("models/simple/cbox.obj"));
