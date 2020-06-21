@@ -69,18 +69,26 @@ impl Obj {
       Vec::with_capacity(self.models.iter().map(|m| m.mesh.indices.len() / 3).sum());
     for m in &self.models {
       for f in 0..m.mesh.indices.len() / 3 {
-        let mut polygon = [Vector3::zero(); 3];
+        let mut coord = [Vector3::zero(); 3];
+        let mut normal = [Vector3::zero(); 3];
         for i in 0..3 {
           let index: usize = f * 3 + i;
-          let potition = Vector3::new(
-            m.mesh.positions[m.mesh.indices[index] as usize * 3],
-            m.mesh.positions[m.mesh.indices[index] as usize * 3 + 1],
-            m.mesh.positions[m.mesh.indices[index] as usize * 3 + 2],
+          let a = m.mesh.indices[index] as usize * 3;
+          coord[i] = Vector3::new(
+            m.mesh.positions[a],
+            m.mesh.positions[a + 1],
+            m.mesh.positions[a + 2],
           );
-          polygon[i] = potition;
+          normal[i] = Vector3::new(
+            m.mesh.normals[a],
+            m.mesh.normals[a + 1],
+            m.mesh.normals[a + 2],
+          );
         }
         instances.push(Object::new(
-          Box::new(Triangle::new(polygon[0], polygon[1], polygon[2], uuid)),
+          Box::new(Triangle::new(
+            coord[0], coord[1], coord[2], normal[0], normal[1], normal[2], uuid,
+          )),
           Matrix4::unit(),
           m.mesh
             .material_id

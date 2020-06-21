@@ -9,6 +9,9 @@ pub struct Triangle {
   p0: Vector3,
   p1: Vector3,
   p2: Vector3,
+  n0: Vector3,
+  n1: Vector3,
+  n2: Vector3,
   normal: Vector3,
   area: f32,
   aabb: AABB,
@@ -17,11 +20,22 @@ pub struct Triangle {
 }
 
 impl Triangle {
-  pub fn new(p0: Vector3, p1: Vector3, p2: Vector3, uuid: &mut UUID) -> Self {
+  pub fn new(
+    p0: Vector3,
+    p1: Vector3,
+    p2: Vector3,
+    n0: Vector3,
+    n1: Vector3,
+    n2: Vector3,
+    uuid: &mut UUID,
+  ) -> Self {
     Triangle {
-      p0: p0,
-      p1: p1,
-      p2: p2,
+      p0,
+      p1,
+      p2,
+      n0,
+      n1,
+      n2,
       normal: (p1 - p0).cross(p2 - p0).normalize(),
       area: (p1 - p0).cross(p2 - p0).norm() * 0.5,
       aabb: Self::aabb(p0, p1, p2),
@@ -151,6 +165,8 @@ impl Geometry for Triangle {
   }
 
   fn normal(&self, _x: Vector3) -> Vector3 {
+    // let g = x.barycentric_coordinate(self.p0, self.p1, self.p2);
+    // (g.x * self.n0 + g.y * self.n1 + g.z * self.n2).normalize()
     self.normal
   }
 
