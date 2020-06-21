@@ -64,6 +64,7 @@ impl Camera for IdealPinhole {
     // レイの方向
     let direction = self.aperture - self.transform() * point;
     let ray = Ray {
+      from: None,
       origin: self.aperture,
       direction: direction.normalize(),
     };

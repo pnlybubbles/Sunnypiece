@@ -88,6 +88,10 @@ impl Triangle {
 
 impl Geometry for Triangle {
   fn intersect(&self, ray: &Ray) -> Option<Intersection> {
+    if ray.from.map(|id| id == self.id).unwrap_or(false) {
+      // Self-intersection
+      return None;
+    }
     // Möller–Trumbore intersection algorithm
     let e1 = self.p1 - self.p0;
     let e2 = self.p2 - self.p0;

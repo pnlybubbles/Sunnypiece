@@ -92,6 +92,7 @@ impl<'a> Interaction<'a> {
     let x = self.intersection.position;
     // 新しいレイ
     let ray = Ray {
+      from: Some(self.geometry.id()),
       origin: x + self.orienting_normal * EPS,
       direction: wo,
     };
@@ -113,6 +114,7 @@ impl<'a> Interaction<'a> {
       return None;
     }
     let ray = Ray {
+      from: Some(self.geometry.id()),
       origin: x + self.orienting_normal * EPS,
       direction: path.normalize(),
     };
@@ -122,6 +124,7 @@ impl<'a> Interaction<'a> {
       if !interaction.intersection.distance.approx_eq(path.norm()) {
         return None;
       }
+      // 可視チェック(3)
       Geom::new(self, interaction)
     })
   }
