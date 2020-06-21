@@ -21,3 +21,26 @@ impl OrthonormalBasis for Vector3 {
     [b1, b2, n].into()
   }
 }
+
+pub trait BarycentricCoordinate {
+  fn barycentric_coordinate(&self, p0: Vector3, p1: Vector3, p2: Vector3) -> Vector3;
+}
+
+impl BarycentricCoordinate for Vector3 {
+  fn barycentric_coordinate(&self, p0: Vector3, p1: Vector3, p2: Vector3) -> Vector3 {
+    let d1 = p0 - p2;
+    let d2 = p1 - p2;
+    let d = *self - p2;
+    let d1x = d1.dot(d1);
+    let d2x = d1.dot(d2);
+    let d1y = d2x;
+    let d2y = d2.dot(d2);
+    let dx = d.dot(d1);
+    let dy = d.dot(d2);
+    let det = d1x * d2y - d1y * d2x;
+    let l1 = (dx * d2y - dy * d2x) / det;
+    let l2 = (d1x * d2y - dy * d2x) / det;
+    let l3 = 1.0 - l1 - l2;
+    Vector3::new(l1, l2, l3)
+  }
+}
