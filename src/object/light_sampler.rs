@@ -46,7 +46,7 @@ impl<'a> LightSampler<'a> {
         if wo_n2 < 0.0 {
           return 0.0;
         }
-        self.intensity[i] * wo_n * wo_n2 / path_sqr_norm
+        self.intensity[i] * (wo_n * wo_n2).max(0.2) / path_sqr_norm
       })
       .collect::<Vec<_>>();
 
