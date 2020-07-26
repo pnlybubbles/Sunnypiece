@@ -27,7 +27,15 @@ impl BoundaryResponse for Vector3 {
 pub struct Fresnel;
 
 impl Fresnel {
-  pub fn schlick(f0: Vector3, wo: Vector3, n: Vector3) -> Vector3 {
-    f0 + (Vector3::fill(1.0) - f0) * (1.0 - wo.dot(n)).powi(5)
+  pub fn schlick(f0: Vector3, wi: Vector3, n: Vector3) -> Vector3 {
+    f0 + (Vector3::fill(1.0) - f0) * (1.0 - wi.dot(n)).powi(5)
+  }
+
+  pub fn ior(wi: Vector3, wt: Vector3, n: Vector3, ni: f32, no: f32) -> f32 {
+    let cos1 = wi.dot(n);
+    let cos2 = wt.dot(-n);
+    let rs = ((ni * cos1 - no * cos2) / (ni * cos1 + no * cos2)).powi(2);
+    let rp = ((ni * cos2 - no * cos1) / (ni * cos2 + no * cos1)).powi(2);
+    (rs + rp) / 2.0
   }
 }
