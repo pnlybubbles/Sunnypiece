@@ -239,3 +239,84 @@ impl<'a> GeomWeight<pdf::Area> for Geom<'a> {
     self.wo.dot(self.n) * (-self.wo).dot(self.n2) / (self.x2 - self.x_offset).sqr_norm() / p
   }
 }
+
+#[cfg(test)]
+mod tests {
+  use acceleration;
+  use geometry;
+  use material;
+  use math::*;
+  use object::{Interact, Interaction, Object};
+  use ray::Ray;
+
+  fn setup() -> (
+    Box<dyn material::Material + Send + Sync>,
+    Box<dyn geometry::Geometry + Send + Sync>,
+  ) {
+    let mut uuid = geometry::UUID::new();
+    let m: Box<dyn material::Material + Send + Sync> = Box::new(material::IdealRefraction {
+      reflectance: Vector3::fill(1.0),
+      ior: 1.5,
+    });
+    let g: Box<dyn geometry::Geometry + Send + Sync> = Box::new(geometry::Sphere::new(
+      Vector3::new(0.0, 0.0, -1.0),
+      1.0,
+      &mut uuid,
+    ));
+    (m, g)
+  }
+
+  #[test]
+  fn transmit_test() {
+    let ray = Ray {
+      origin: Vector3::new(0.0, 0.0, 1.0),
+      direction: Vector3::new(0.0, 0.0, -1.0),
+      from: None,
+    };
+    let (m, g) = setup();
+    let a = acceleration::Linear::new(vec![Object::new(g, Matrix4::unit(), &m)]);
+    let i = a.interact(ray).unwrap();
+    let s = i.sample_material();
+    assert!(s.value.dot(Vector3::new(0.0, 0.0, -1.0)).approx_eq(1.0));
+  }
+
+  #[test]
+  fn transmit_backface_test() {
+    let ray = Ray {
+      origin: Vector3::new(0.0, 0.0, -1.0),
+      direction: Vector3::new(0.0, 0.0, 1.0),
+      from: None,
+    };
+    let (m, g) = setup();
+    let a = acceleration::Linear::new(vec![Object::new(g, Matrix4::unit(), &m)]);
+    let i = a.interact(ray).unwrap();
+    let s = i.sample_material();
+    assert!(s.value.dot(Vector3::new(0.0, 0.0, 1.0)).approx_eq(1.0));
+  }
+
+  #[test]
+  fn transmit_interaction_test() {
+    let ray = Ray {
+      origin: Vector3::new(0.0, 0.0, 1.0),
+      direction: Vector3::new(0.0, 0.0, -1.0),
+      from: None,
+    };
+    let (m, g) = setup();
+    let a = acceleration::Linear::new(vec![Object::new(g, Matrix4::unit(), &m)]);
+    let i = a.interact(ray).unwrap();
+    let s = i.sample_material();
+    let geom = i.connect_direction(&a, s.value).unwrap();
+    assert!(
+      (geom.x - Vector3::new(0.0, 0.0, 0.0)).norm().approx_eq(0.0),
+      "{}",
+      geom.x
+    );
+    assert!(
+      (geom.x2 - Vector3::new(0.0, 0.0, -2.0))
+        .norm()
+        .approx_eq(0.0),
+      "{}",
+      geom.x2
+    );
+  }
+}
