@@ -42,3 +42,11 @@ impl Sampler {
     })
   }
 }
+
+pub struct Roulette;
+
+impl Roulette {
+  pub fn within(threshold: f32) -> bool {
+    RNG.with(|rng| rng.borrow_mut().gen::<f32>() < threshold)
+  }
+}
