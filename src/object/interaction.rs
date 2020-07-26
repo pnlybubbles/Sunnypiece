@@ -82,7 +82,7 @@ impl<'a> Interaction<'a> {
     let wi = -self.ray.direction;
     // BRDFに応じたサンプリング
     // NOTE: 方向ベクトルがサンプリングされる
-    self.material.sample(wi, n)
+    self.material.sample(wi, n, self.is_backface)
   }
 
   pub fn connect_direction<S>(&self, structure: &'a S, wo: Vector3) -> Option<Geom>
@@ -182,11 +182,17 @@ impl<'a> Geom<'a> {
   }
 
   pub fn bsdf(&self) -> Vector3 {
-    self.current.material.brdf(self.wi, self.wo, self.n, self.x)
+    self
+      .current
+      .material
+      .brdf(self.wi, self.wo, self.n, self.x, self.current.is_backface)
   }
 
   pub fn bsdf_pdf(&self) -> pdf::SolidAngle {
-    self.current.material.pdf(self.wi, self.wo, self.n)
+    self
+      .current
+      .material
+      .pdf(self.wi, self.wo, self.n, self.current.is_backface)
   }
 
   pub fn g(&self) -> f32 {
