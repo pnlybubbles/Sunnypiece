@@ -93,7 +93,7 @@ impl<'a> Interaction<'a> {
     // 新しいレイ
     let ray = Ray {
       from: Some(self.geometry.id()),
-      origin: x + self.orienting_normal * EPS,
+      origin: x + wo * EPS,
       direction: wo,
     };
     debug_assert!(wo.is_finite(), "{}", wo);
@@ -113,10 +113,11 @@ impl<'a> Interaction<'a> {
     if path.dot(self.orienting_normal) < 0.0 {
       return None;
     }
+    let wo = path.normalize();
     let ray = Ray {
       from: Some(self.geometry.id()),
-      origin: x + self.orienting_normal * EPS,
-      direction: path.normalize(),
+      origin: x + wo * EPS,
+      direction: wo,
     };
     debug_assert!(ray.direction.is_finite(), "{}", ray.direction);
     structure.interact(ray).and_then(|interaction| {
