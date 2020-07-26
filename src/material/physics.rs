@@ -4,8 +4,8 @@ pub trait BoundaryResponse
 where
   Self: Sized,
 {
-  fn reflect(&self, Self) -> Self;
-  fn refract(&self, Self, f32) -> Option<Self>;
+  fn reflect(&self, normal: Self) -> Self;
+  fn refract(&self, normal: Self, from_per_to_ior: f32) -> Option<Self>;
 }
 
 impl BoundaryResponse for Vector3 {
