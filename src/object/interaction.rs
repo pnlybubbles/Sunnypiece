@@ -158,9 +158,6 @@ impl<'a> Geom<'a> {
     let path_i = x2 - x_offset;
     let wo = path_i / next.intersection.distance;
     let wi = path_o / current.intersection.distance;
-    if wo.dot(n) <= 0.0 {
-      return None;
-    }
     if -wo.dot(n2) <= 0.0 {
       return None;
     }
