@@ -93,7 +93,6 @@ where
             debug_assert!(light_pdf.0 > 0.0);
             let bsdf_pdf = geom.bsdf_pdf();
             debug_assert!(bsdf_pdf.0.is_finite());
-            debug_assert!(bsdf_pdf.0 > 0.0);
             let mis_weight = light_pdf.power_hulistic(bsdf_pdf, 2);
             debug_assert!(mis_weight.is_finite());
             li * geom.bsdf() * geom.weight(light_pdf) * mis_weight

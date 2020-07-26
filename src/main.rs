@@ -50,34 +50,44 @@ fn main() {
   let mut film = Film::new(Vector3::zero(), WIDTH, HEIGHT);
 
   // カメラ
-  let camera_matrix = Matrix4::look_at(
-    Vector3::new(0.0, 2.0, 15.0),
-    Vector3::new(0.0, 1.69522, 14.0476),
-    Vector3::new(0.0, 1.0, 0.0),
-  );
-  let camera = IdealPinhole::new(36.7774 * PI / 180.0, film.aspect(), camera_matrix);
   // let camera_matrix = Matrix4::look_at(
-  //   Vector3::new(278.0, 273.0, -800.0),
-  //   Vector3::new(278.0, 273.0, 0.0),
+  //   Vector3::new(0.0, 2.0, 15.0),
+  //   Vector3::new(0.0, 1.69522, 14.0476),
   //   Vector3::new(0.0, 1.0, 0.0),
   // );
-  // let camera = IdealPinhole::new(39.3077 * PI / 180.0, film.aspect(), camera_matrix);
+  // let camera = IdealPinhole::new(36.7774 * PI / 180.0, film.aspect(), camera_matrix);
+  let camera_matrix = Matrix4::look_at(
+    Vector3::new(278.0, 273.0, -800.0),
+    Vector3::new(278.0, 273.0, 0.0),
+    Vector3::new(0.0, 1.0, 0.0),
+  );
+  let camera = IdealPinhole::new(39.3077 * PI / 180.0, film.aspect(), camera_matrix);
 
   // シーン
   let mat: Box<dyn Material + Send + Sync> = Box::new(material::Lambertian {
     emittance: Vector3::zero(),
     albedo: Vector3::new(0.75, 0.75, 0.75),
   });
+  let grossy1: Box<dyn Material + Send + Sync> = Box::new(material::IdealRefraction {
+    reflectance: Vector3::new(1.0, 1.0, 1.0),
+    ior: 1.5,
+  });
   let mut uuid = UUID::new();
   let mut objects = Vec::new();
-  // let cbox = loader::Obj::new(Path::new("models/simple/cbox.obj"));
-  // let luminaire = loader::Obj::new(Path::new("models/simple/cbox_luminaire.obj"));
+  let cbox = loader::Obj::new(Path::new("models/simple/cbox.obj"));
+  let luminaire = loader::Obj::new(Path::new("models/simple/cbox_luminaire.obj"));
   // let bunny = loader::Obj::new(Path::new("models/bunny/cbox_bunny.obj"));
-  // objects.append(&mut cbox.instances(&mat));
-  // objects.append(&mut luminaire.instances(&mat));
-  // objects.append(&mut bunny.instances(&grossy1));
-  let veach_mis = loader::Obj::new(Path::new("models/veach-mis/veach-mis.obj"));
-  objects.append(&mut veach_mis.instances(&mat, &mut uuid));
+  objects.append(&mut cbox.instances(&mat, &mut uuid));
+  objects.append(&mut luminaire.instances(&mat, &mut uuid));
+  // objects.append(&mut bunny.instances(&grossy1, &mut uuid));
+  let ball = Box::new(geometry::Sphere::new(
+    Vector3::new(278.0 - 100.0, 100.0, 278.0 - 100.0),
+    100.0,
+    &mut uuid,
+  ));
+  objects.push(object::Object::new(ball, Matrix4::unit(), &grossy1));
+  // let veach_mis = loader::Obj::new(Path::new("models/veach-mis/veach-mis.obj"));
+  // objects.append(&mut veach_mis.instances(&mat, &mut uuid));
 
   // 空間構造
   let structure = acceleration::BVH::new(objects);
@@ -94,7 +104,7 @@ fn main() {
   // 積分器
   let mut integrator = integrator::ParPixel::new(&mut film, SPP);
   // 光輸送
-  let light_transporter = light_transport::ExplicitLight::new(&structure);
+  let light_transporter = light_transport::Naive::new(&structure);
 
   integrator.each(|u, v| {
     let ray = camera.sample(u, v);
