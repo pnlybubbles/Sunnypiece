@@ -78,7 +78,7 @@ impl<'a> Interaction<'a> {
   }
 
   pub fn sample_material(&self) -> Sample<Vector3, pdf::SolidAngle> {
-    let n = self.intersection.normal;
+    let n = self.orienting_normal;
     let wi = -self.ray.direction;
     // BRDFに応じたサンプリング
     // NOTE: 方向ベクトルがサンプリングされる
