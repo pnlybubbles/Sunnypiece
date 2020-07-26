@@ -36,12 +36,16 @@ impl Triangle {
       n0,
       n1,
       n2,
-      normal: (p1 - p0).cross(p2 - p0).normalize(),
+      normal: Self::normal(p0, p1, p2),
       area: (p1 - p0).cross(p2 - p0).norm() * 0.5,
       aabb: Self::aabb(p0, p1, p2),
       id: uuid.gen(),
       bounding_sphere: Self::bounding_sphere(p0, p1, p2),
     }
+  }
+
+  pub fn normal(p0: Vector3, p1: Vector3, p2: Vector3) -> Vector3 {
+    (p1 - p0).cross(p2 - p0).normalize()
   }
 
   fn aabb(p0: Vector3, p1: Vector3, p2: Vector3) -> AABB {
