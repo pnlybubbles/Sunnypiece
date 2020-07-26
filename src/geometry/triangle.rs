@@ -168,10 +168,10 @@ impl Geometry for Triangle {
     &self.aabb
   }
 
-  fn normal(&self, _x: Vector3) -> Vector3 {
-    // let g = x.barycentric_coordinate(self.p0, self.p1, self.p2);
-    // (g.x * self.n0 + g.y * self.n1 + g.z * self.n2).normalize()
-    self.normal
+  fn normal(&self, x: Vector3) -> Vector3 {
+    let g = x.barycentric_coordinate(self.p0, self.p1, self.p2);
+    (g.x * self.n0 + g.y * self.n1 + g.z * self.n2).normalize()
+    // self.normal
   }
 
   fn id(&self) -> usize {
