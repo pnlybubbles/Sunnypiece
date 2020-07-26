@@ -85,6 +85,10 @@ impl<'a> Interaction<'a> {
     self.material.sample(wi, n, self.is_backface)
   }
 
+  pub fn is_delta(&self) -> bool {
+    self.material.is_delta()
+  }
+
   pub fn connect_direction<S>(&self, structure: &'a S, wo: Vector3) -> Option<Geom>
   where
     S: Acceleration,

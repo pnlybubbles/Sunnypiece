@@ -89,6 +89,10 @@ impl Material for IdealRefraction {
       .unwrap_or(1.0);
     return pdf::SolidAngle(distribution::DELTA_FUNCTION * p);
   }
+
+  fn is_delta(&self) -> bool {
+    true
+  }
 }
 
 #[cfg(test)]
