@@ -46,6 +46,20 @@ where
       "{}",
       material_sample.value
     );
+
+    // 完全鏡面反射の場合はNEEを行わない
+    if point.is_delta() {
+      let contrib = match point.connect_direction(self.structure, material_sample.value) {
+        None => Vector3::zero(),
+        Some(geom) => {
+          let li = geom.next.emittance();
+          let li_scatter = self.radiance_recursive(&geom.next, depth + 1);
+          (li + li_scatter) * geom.bsdf() * geom.weight(material_sample.pdf)
+        }
+      };
+      return le + contrib;
+    }
+
     // 衝突点から方向ベクトルを使ってパスを接続
     let material_oriented_contrib =
       match point.connect_direction(self.structure, material_sample.value) {
