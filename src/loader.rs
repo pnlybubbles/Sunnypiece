@@ -79,11 +79,15 @@ impl Obj {
             m.mesh.positions[a + 1],
             m.mesh.positions[a + 2],
           );
-          normal[i] = Vector3::new(
-            m.mesh.normals[a],
-            m.mesh.normals[a + 1],
-            m.mesh.normals[a + 2],
-          );
+          normal[i] = if m.mesh.normals.len() < a + 2 {
+            Triangle::normal(coord[0], coord[1], coord[2])
+          } else {
+            Vector3::new(
+              m.mesh.normals[a],
+              m.mesh.normals[a + 1],
+              m.mesh.normals[a + 2],
+            )
+          };
         }
         instances.push(Object::new(
           Box::new(Triangle::new(
