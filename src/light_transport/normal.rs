@@ -11,6 +11,15 @@ where
   pub structure: S,
 }
 
+impl<S> Normal<S>
+where
+  S: Acceleration,
+{
+  pub fn new(structure: S) -> Self {
+    Normal { structure }
+  }
+}
+
 impl<S> Radiance for Normal<S>
 where
   S: Acceleration,
