@@ -1,6 +1,6 @@
 [package]
 authors = ["pnlybubbles <pnlybubbles@gmail.com>"]
-name = "Sunnypiece"
+name = "sunnypiece"
 version = "0.1.0"
 
 [dependencies]
