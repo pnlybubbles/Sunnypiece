@@ -77,6 +77,10 @@ impl<'a> Interaction<'a> {
     }
   }
 
+  pub fn geometry_id(&self) -> usize {
+    self.geometry.id()
+  }
+
   pub fn sample_material(&self) -> Sample<Vector3, pdf::SolidAngle> {
     let n = self.orienting_normal;
     let wi = -self.ray.direction;

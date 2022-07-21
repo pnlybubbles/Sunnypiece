@@ -104,7 +104,7 @@ fn main() {
   // 積分器
   let mut integrator = integrator::ParPixel::new(&mut film, SPP);
   // 光輸送
-  let light_transporter = light_transport::ExplicitLight::new(&structure);
+  let light_transporter = light_transport::Id::new(structure);
 
   integrator.each(|u, v| {
     let ray = camera.sample(u, v);
